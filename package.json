@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server --exec babel-node --presets es2015,stage-2"
+    "db": "babel-node setup",
+    "test": "mocha --compilers js:babel-core/register server/tests/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -21,11 +22,17 @@
     "babel-cli": "^6.22.2",
     "babel-core": "^6.22.1",
     "babel-eslint": "^7.1.1",
+    "bluebird": "^3.4.7",
     "eslint": "^3.13.1",
     "eslint-config-airbnb": "^14.0.0",
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^3.0.2",
     "eslint-plugin-react": "^6.9.0",
+    "factory-girl": "^4.1.0",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.2.1",
+    "mocha": "^3.2.0",
+    "mockgoose": "^6.0.8",
     "nodemon": "^1.11.0",
     "sequelize-cli": "^2.5.1"
   },
@@ -36,7 +43,12 @@
     "babel-preset-stage-2": "^6.22.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.16.0",
+    "chai": "^3.5.0",
     "express": "^4.14.0",
+    "faker": "^3.1.0",
+    "gulp-babel": "^6.1.2",
+    "jsonwebtoken": "^7.2.1",
+    "jwt-decode": "^2.1.0",
     "morgan": "^1.7.0",
     "pg": "^6.1.2",
     "pg-hstore": "^2.3.2",
