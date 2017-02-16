@@ -1,8 +1,9 @@
+/* eslint-disable import/no-unresolved */
 
 import express from 'express';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
-import route from './server/routes';
+
 
 const port = parseInt(process.env.PORT, 10) || 5000;
 
