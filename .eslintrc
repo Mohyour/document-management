@@ -1,10 +1,16 @@
 {
   "root": true,
+  "parser": "babel-eslint",
   "extends": "airbnb",
   "env": {
     "node": true,
     "es6": true,
     "mocha": true
+  },
+  "parserOptions": {
+     "ecmaVersion": 6,
+     "sourceType": "module",
+     "allowImportExportEverywhere": true
   },
   "rules": {
     "one-var": 0,
