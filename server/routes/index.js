@@ -10,18 +10,18 @@ export default (app) => {
     message: 'Welcome to Document Management System!',
   }));
 
-  app.post('/roles', auth.verifyToken, roleController.createRole);
+  app.post('/roles', auth.verifyToken, auth.adminAccess, roleController.createRole);
   app.get('/roles', auth.verifyToken, roleController.listRoles);
   app.get('/roles/:id', roleController.getRole);
-  app.put('/roles/:id', auth.verifyToken, roleController.updateRole);
-  app.delete('/roles/:id', auth.verifyToken, roleController.deleteRole);
+  app.put('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.updateRole);
+  app.delete('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.deleteRole);
 
   app.post('/users', userController.createUser);
-  app.get('/users', auth.verifyToken, userController.listUsers);
+  app.get('/users', auth.verifyToken, auth.adminAccess, userController.listUsers);
   app.get('/users/:id', auth.verifyToken, userController.getUser);
   app.get('/users/:id/documents', auth.verifyToken, userController.getUserDoc);
   app.put('/users/:id', auth.verifyToken, userController.updateUser);
-  app.delete('/users/:id', auth.verifyToken, userController.deleteUser);
+  app.delete('/users/:id', auth.verifyToken, auth.adminAccess, userController.deleteUser);
 
   app.post('/login', userController.login);
   app.post('/logout', userController.logout);
