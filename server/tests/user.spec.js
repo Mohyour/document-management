@@ -150,25 +150,24 @@ describe('User api', () => {
         });
     });
 
-      it('Should fail to delete a user that does not exist', (done) => {
-        request.delete('/users/123')
-          .expect(404)
-          .end((err, res) => {
-            expect(typeof res.body).to.equal('object');
-            expect(res.body.message).to.equal('User Not Found');
-            done();
-          });
-      });
+    it('Should fail to delete a user that does not exist', (done) => {
+      request.delete('/users/123')
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('User Not Found');
+          done();
+        });
+    });
 
-      it('Should find and delete a user if user exist', (done) => {
-        request.delete('/users/1')
-          .expect(200)
-          .end((err, res) => {
-            expect(typeof res.body).to.equal('object');
-            expect(res.body.message).to.equal('User Deleted');
-            done();
-          });
-      });
+    it('Should find and delete a user if user exist', (done) => {
+      request.delete('/users/1')
+        .expect(200)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('User Deleted');
+          done();
+        });
     });
   });
 });
