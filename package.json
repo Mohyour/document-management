@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "db": "babel-node setup",
+    "start": "nodemon server --exec babel-node --presets es2015,stage-2",
     "test": "mocha --compilers js:babel-core/register server/tests/*.spec.js"
   },
   "repository": {
