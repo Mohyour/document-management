@@ -17,7 +17,8 @@ const documentTwo = helper.testDocument2;
 const documentThree = helper.testDocument3;
 
 describe('Documnet api', () => {
-  let document, adminRole, regularRole, adminUser, regularUser, testUser;
+  let document, adminRole, regularRole, adminUser, regularUser,
+    adminToken, testUser, regularToken, testToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -33,21 +34,24 @@ describe('Documnet api', () => {
         request.post('/users')
           .send(adminUserParam)
           .end((error, response) => {
-            adminUser = response.body;
+            adminUser = response.body.user;
+            adminToken = response.body.token;
             documentOne.UserId = adminUser.id;
             documentOne.RoleId = adminRole.id;
 
             request.post('/users')
               .send(regularUserParam)
               .end((err, res) => {
-                regularUser = res.body;
+                regularUser = res.body.user;
+                regularToken = res.body.token;
                 documentTwo.UserId = regularUser.id;
                 documentTwo.RoleId = regularRole.id;
 
                 request.post('/users')
                   .send(testUserParam)
                   .end((err, res) => {
-                    testUser = res.body;
+                    testUser = res.body.user;
+                    testToken = res.body.token;
                     documentThree.UserId = testUser.id;
                     documentThree.RoleId = regularRole.id;
                     done();
@@ -62,6 +66,7 @@ describe('Documnet api', () => {
   describe('Post (/documents) - Create document', () => {
     it('Should have a published date defined', (done) => {
       request.post('/documents')
+        .set({ 'x-access-token': adminToken })
         .send(documentOne)
         .expect(201)
         .end((err, res) => {
@@ -80,9 +85,11 @@ describe('Documnet api', () => {
 
     it('Should create a document with a unique title', (done) => {
       request.post('/documents')
+        .set({ 'x-access-token': adminToken })
         .send(documentOne)
-        .end((err, res) => { // eslint-disable-line no-unused-vars
+        .end((err, res) => {
           request.post('/documents')
+            .set({ 'x-access-token': adminToken })
             .send(documentOne)
             .end((err, res) => {
               expect(res.body.errors[0].message).to.equal('title must be unique');
@@ -93,6 +100,7 @@ describe('Documnet api', () => {
 
     it('Should ensure that document has an owner', (done) => {
       request.post('/documents')
+        .set({ 'x-access-token': adminToken })
         .send(documentTwo)
         .expect(201)
         .end((err, res) => {
@@ -110,6 +118,7 @@ describe('Documnet api', () => {
     it('Should ensure that document cannot be created if title is lacking', (done) => {
       documentTwo.title = null;
       request.post('/documents')
+        .set({ 'x-access-token': adminToken })
         .send(documentTwo)
         .expect(201)
         .end((err, res) => {
@@ -122,6 +131,7 @@ describe('Documnet api', () => {
   describe('Get (/document:id) - Get document', () => {
     it('Should return all documents', (done) => {
       request.get('/documents')
+        .set({ 'x-access-token': regularToken })
         .expect(200).end((err, res) => {
           expect(Array.isArray(res.body)).to.equal(true);
           expect(res.body.length).to.be.greaterThan(0);
@@ -132,6 +142,7 @@ describe('Documnet api', () => {
 
     it('Should return a document with specified id', (done) => {
       request.get('/documents/1')
+        .set({ 'x-access-token': regularToken })
         .expect(200).end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.UserId).to.equal(adminUser.id);
@@ -145,6 +156,7 @@ describe('Documnet api', () => {
     it('should not perform edit if invalid id is provided', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/123')
+        .set({ 'x-access-token': regularToken })
         .send(newContent)
         .expect(404)
         .end((error, response) => {
@@ -153,9 +165,17 @@ describe('Documnet api', () => {
         });
     });
 
+    it('should not perform edit if User is not authorized', (done) => {
+      const newContent = { content: 'replace previous document' };
+      request.put('/documents/2')
+        .send(newContent)
+        .expect(401, done);
+    });
+
     it('should edit document if valid id is provided', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/1')
+        .set({ 'x-access-token': adminToken })
         .send(newContent)
         .end((error, response) => {
           expect(response.status).to.equal(200);
@@ -166,8 +186,16 @@ describe('Documnet api', () => {
   });
 
   describe('Delete (/document/:id) - Delete a document', () => {
+    it('should not delete if user is not authorized', (done) => {
+      const newContent = { content: 'replace previous document' };
+      request.delete('/documents/2')
+        .send(newContent)
+        .expect(401, done);
+    });
+
     it('Should delete a document', (done) => {
       request.delete('/documents/1')
+        .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
@@ -178,6 +206,7 @@ describe('Documnet api', () => {
 
     it('Should fail if document does not exist', (done) => {
       request.delete('/documents/123')
+        .set({ 'x-access-token': regularToken })
         .expect(404)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
