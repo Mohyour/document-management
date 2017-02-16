@@ -1,6 +1,7 @@
 import controller from '../controllers';
 
 const userController = controller.user;
+const docController = controller.document;
 const roleController = controller.role;
 
 export default (app) => {
@@ -20,4 +21,11 @@ export default (app) => {
   app.get('/users/:id/documents', userController.getUserDoc);
   app.put('/users/:id', userController.updateUser);
   app.delete('/users/:id', userController.deleteUser);
+
+
+  app.post('/documents', docController.createDoc);
+  app.get('/documents', docController.listDocs);
+  app.get('/documents/:id', docController.getDoc);
+  app.put('/documents/:id', docController.updateDoc);
+  app.delete('/documents/:id', docController.deleteDoc);
 };
