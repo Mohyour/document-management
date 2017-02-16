@@ -11,14 +11,12 @@ const adminRoleParam = helper.adminRole;
 const regularRoleParam = helper.regularRole;
 const adminUserParam = helper.adminUser;
 const regularUserParam = helper.regularUser;
-const testUserParam = helper.testUser;
 const documentOne = helper.testDocument;
 const documentTwo = helper.testDocument2;
-const documentThree = helper.testDocument3;
 
 describe('Documnet api', () => {
   let document, adminRole, regularRole, adminUser, regularUser,
-    adminToken, testUser, regularToken, testToken;
+    adminToken, regularToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -27,9 +25,7 @@ describe('Documnet api', () => {
         adminRole = createdRoles[0];
         regularRole = createdRoles[1];
         adminUserParam.RoleId = adminRole.id;
-        // Two users here are assigned same RoleId to demonstrate role access
         regularUserParam.RoleId = regularRole.id;
-        testUserParam.RoleId = regularRole.id;
 
         request.post('/users')
           .send(adminUserParam)
@@ -46,16 +42,7 @@ describe('Documnet api', () => {
                 regularToken = res.body.token;
                 documentTwo.UserId = regularUser.id;
                 documentTwo.RoleId = regularRole.id;
-
-                request.post('/users')
-                  .send(testUserParam)
-                  .end((err, res) => {
-                    testUser = res.body.user;
-                    testToken = res.body.token;
-                    documentThree.UserId = testUser.id;
-                    documentThree.RoleId = regularRole.id;
-                    done();
-                  });
+                done();
               });
           });
       });
@@ -87,7 +74,7 @@ describe('Documnet api', () => {
       request.post('/documents')
         .set({ 'x-access-token': adminToken })
         .send(documentOne)
-        .end((err, res) => {
+        .end((err, res) => { // eslint-disable-line no-unused-vars
           request.post('/documents')
             .set({ 'x-access-token': adminToken })
             .send(documentOne)
