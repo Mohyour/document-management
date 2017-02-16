@@ -6,7 +6,6 @@ import bodyParser from 'body-parser';
 import route from './server/routes';
 
 
-
 const port = parseInt(process.env.PORT, 10) || 5000;
 
 // Set up express app
