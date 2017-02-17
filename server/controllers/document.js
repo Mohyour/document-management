@@ -28,6 +28,28 @@ export default {
     .catch(error => res.status(400).send(error));
   },
 
+  getRoleDoc(req, res) {
+    return Document
+    .findAll({ where: { RoleId: req.query.RoleId } })
+    .then(document => res.status(200).send(document))
+    .catch(error => res.status(400).send(error));
+  },
+
+  getUserDoc(req, res) {
+    return Document
+    .findAll({ where: { UserId: req.query.UserId } })
+    .then(document => res.status(200).send(document))
+    .catch(error => res.status(400).send(error));
+  },
+
+
+  getDateDoc(req, res) {
+    return Document
+    .findAll({ where: { createdAt: { $contain: req.query.date } } })
+    .then(document => res.status(200).send(document))
+    .catch(error => res.status(400).send(error));
+  },
+
   updateDoc(req, res) {
     return Document
     .findById(req.params.id, {})
