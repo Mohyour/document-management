@@ -18,7 +18,7 @@ const testUserParam = helper.testUser;
 
 describe('User api', () => {
   let adminRole, regularRole, adminUser, regularUser,
-    adminToken, testUser;
+    adminToken, testUser, regularToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -33,7 +33,8 @@ describe('User api', () => {
         request.post('/users')
           .send(adminUserParam)
           .end((error, response) => {
-            adminUser = response.body;
+            adminUser = response.body.user;
+            adminToken = response.body.token;
             done();
           });
       });
@@ -54,10 +55,12 @@ describe('User api', () => {
 
     it('Should test if new user has first name and last name', (done) => {
       request.post('/users')
+        .set({ 'x-access-token': adminToken })
         .send(regularUserParam)
         .expect(200)
         .end((err, res) => {
-          regularUser = res.body;
+          regularUser = res.body.user;
+          regularToken = res.body.token;
           expect(regularUser.firstname).to.exist;
           expect(regularUser.lastname).to.exist;
           done();
@@ -66,6 +69,7 @@ describe('User api', () => {
 
     it('Should ensure that new user has a role', (done) => {
       request.post('/users')
+        .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(regularUser).to.have.property('RoleId');
@@ -78,6 +82,7 @@ describe('User api', () => {
       testUserParam.email = null;
       testUserParam.password = null;
       request.post('/users')
+        .set({ 'x-access-token': adminToken })
         .send(testUserParam)
         .expect(500)
         .end((err, res) => {
@@ -91,6 +96,7 @@ describe('User api', () => {
   describe('Get: (/users/) - Get a user', () => {
     it('should not return a user id is invalid', (done) => {
       request.get('/users/123')
+        .set({ 'x-access-token': adminToken })
         .expect(404)
         .end((err, res) => {
           expect(res.body.message).to.be.equal('User Not Found');
@@ -98,8 +104,9 @@ describe('User api', () => {
         });
     });
 
-    it('Should return all users', (done) => {
+    it('Should return all users to an admin', (done) => {
       request.get('/users')
+        .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {
           expect(Array.isArray(res.body)).to.equal(true);
@@ -115,6 +122,7 @@ describe('User api', () => {
 
     it('should return the user with a correct id', (done) => {
       request.get(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': adminToken })
         .end((error, response) => {
           expect(response.status).to.equal(200);
           expect(regularUser.email).to.equal(regularUserParam.email);
@@ -126,6 +134,7 @@ describe('User api', () => {
   describe('Put: (/users/:id) - Update a user', () => {
     it('Should edit and update a user', (done) => {
       request.put(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': regularToken })
         .send({
           firstname: 'Moyosore',
           lastname: 'Sosan',
@@ -142,6 +151,7 @@ describe('User api', () => {
 
     it('Should fail to update a user that does not exist', (done) => {
       request.put('/users/783')
+        .set({ 'x-access-token': regularToken })
         .expect(404)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
@@ -150,8 +160,43 @@ describe('User api', () => {
         });
     });
 
+    it('Should fail to update a user if user is not authorized', (done) => {
+      request.put('/users/783')
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('Not Authorized');
+          done();
+        });
+    });
+  });
+
+  describe('Delete (users/:id) - Delete a user', () => {
+    it('Should fail to delete a user by a different user', (done) => {
+      request.delete(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': regularToken })
+        .expect(403)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message)
+            .to.equal('Only an admin is authorized for this request');
+          done();
+        });
+    });
+
+    it('Should fail to delete a user if user is not authorized', (done) => {
+      request.put('/users/783')
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('Not Authorized');
+          done();
+        });
+    });
+
     it('Should fail to delete a user that does not exist', (done) => {
       request.delete('/users/123')
+        .set({ 'x-access-token': adminToken })
         .expect(404)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
@@ -162,6 +207,7 @@ describe('User api', () => {
 
     it('Should find and delete a user if user exist', (done) => {
       request.delete('/users/1')
+        .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
