@@ -11,13 +11,12 @@ const adminRoleParam = helper.adminRole;
 const regularRoleParam = helper.regularRole;
 const adminUserParam = helper.adminUser;
 const regularUserParam = helper.regularUser;
-const testUserParam = helper.testUser;
 const documentOne = helper.testDocument;
 const documentTwo = helper.testDocument2;
 
 describe('Search api (documents/)', () => {
-  let document, adminRole, regularRole, adminUser, regularUser,
-    adminToken, testUser, regularToken;
+  let document, adminRole, regularRole, adminUser, // eslint-disable-line no-unused-vars
+    regularUser, adminToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -27,7 +26,6 @@ describe('Search api (documents/)', () => {
         regularRole = createdRoles[1];
         adminUserParam.RoleId = adminRole.id;
         regularUserParam.RoleId = regularRole.id;
-        testUserParam.RoleId = regularRole.id;
 
         request.post('/users')
           .send(adminUserParam)
@@ -41,7 +39,6 @@ describe('Search api (documents/)', () => {
               .send(regularUserParam)
               .end((err, res) => {
                 regularUser = res.body.user;
-                regularToken = res.body.token;
                 documentTwo.UserId = regularUser.id;
                 documentTwo.RoleId = regularRole.id;
 
