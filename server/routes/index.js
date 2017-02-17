@@ -28,6 +28,9 @@ export default (app) => {
 
   app.post('/documents', docController.createDoc);
   app.get('/documents', docController.listDocs);
+  app.get('/documents/role', auth.verifyToken, docController.getRoleDoc);
+  app.get('/documents/user', auth.verifyToken, docController.getUserDoc);
+  app.get('/documents/date', auth.verifyToken, docController.getDateDoc);
   app.get('/documents/:id', auth.verifyToken, docController.getDoc);
   app.put('/documents/:id', auth.verifyToken, docController.updateDoc);
   app.delete('/documents/:id', auth.verifyToken, docController.deleteDoc);
