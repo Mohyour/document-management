@@ -2,3 +2,5 @@ node_modules
 .vscode
 npm-debug.log
 .env
+coverage
+.coveralls.yml
