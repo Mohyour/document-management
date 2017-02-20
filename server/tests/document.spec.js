@@ -103,10 +103,10 @@ describe('Documnet api', () => {
     });
 
     it('Should ensure that document cannot be created if title is lacking', (done) => {
-      documentTwo.title = null;
+      const nullTitleDoc = { title: null, content: 'content' };
       request.post('/documents')
         .set({ 'x-access-token': adminToken })
-        .send(documentTwo)
+        .send(nullTitleDoc)
         .expect(201)
         .end((err, res) => {
           expect(res.body.errors[0].message).to.equal('title cannot be null');
@@ -115,10 +115,10 @@ describe('Documnet api', () => {
     });
   });
 
-  describe('Get (/document:id) - Get document', () => {
+  describe('Get (/documents:id) - Get document', () => {
     it('Should return all documents', (done) => {
       request.get('/documents')
-        .set({ 'x-access-token': regularToken })
+        .set({ 'x-access-token': adminToken })
         .expect(200).end((err, res) => {
           expect(Array.isArray(res.body)).to.equal(true);
           expect(res.body.length).to.be.greaterThan(0);
@@ -127,13 +127,23 @@ describe('Documnet api', () => {
         });
     });
 
-    it('Should return a document with specified id', (done) => {
-      request.get('/documents/1')
+    it('Should return a document with specified id to its owner', (done) => {
+      request.get('/documents/4')
         .set({ 'x-access-token': regularToken })
         .expect(200).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.UserId).to.equal(adminUser.id);
-          expect(res.body.title).to.equal(documentOne.title);
+          expect(res.body.UserId).to.equal(regularUser.id);
+          expect(res.body.title).to.equal(documentTwo.title);
+          done();
+        });
+    });
+
+    it('Should fail to return a document to non-permited users', (done) => {
+      request.get('/documents/4')
+        .set({ 'x-access-token': adminToken })
+        .expect(200).end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('You cannot view this document');
           done();
         });
     });
@@ -159,6 +169,18 @@ describe('Documnet api', () => {
         .expect(401, done);
     });
 
+    it('should fail to edit document if request is not made by the owner', (done) => {
+      const newContent = { content: 'replace previous document' };
+      request.put('/documents/1')
+        .set({ 'x-access-token': regularToken })
+        .send(newContent)
+        .end((error, response) => {
+          expect(response.status).to.equal(403);
+          expect(response.body.message).to.equal('You cannot update this document');
+          done();
+        });
+    });
+
     it('should edit document if valid id is provided', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/1')
@@ -178,6 +200,16 @@ describe('Documnet api', () => {
       request.delete('/documents/2')
         .send(newContent)
         .expect(401, done);
+    });
+
+    it('should fail to delete a document if request is not made by the owner', (done) => {
+      request.delete('/documents/1')
+        .set({ 'x-access-token': regularToken })
+        .end((error, response) => {
+          expect(response.status).to.equal(403);
+          expect(response.body.message).to.equal('You cannot delete this document');
+          done();
+        });
     });
 
     it('Should delete a document', (done) => {

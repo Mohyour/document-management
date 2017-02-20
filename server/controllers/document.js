@@ -15,39 +15,38 @@ export default {
   listDocs(req, res) {
     return Document
     .all()
-    .then(document => res.status(200).send(document))
-    .catch((error) => {
-      res.status(500).send(error);
-    });
+    .then(document => res.status(200).send(document));
   },
 
   getDoc(req, res) {
     return Document
     .findById(req.params.id)
-    .then(document => res.status(200).send(document))
-    .catch(error => res.status(400).send(error));
+    .then((document) => {
+      if (document.RoleId === req.decoded.RoleId || document.UserId === req.decoded.UserId) {
+        return res.status(200).send(document);
+      }
+      res.status(403).send({
+        message: 'You cannot view this document'
+      });
+    });
   },
 
   getRoleDoc(req, res) {
     return Document
     .findAll({ where: { RoleId: req.query.RoleId } })
-    .then(document => res.status(200).send(document))
-    .catch(error => res.status(400).send(error));
+    .then(document => res.status(200).send(document));
   },
 
   getUserDoc(req, res) {
     return Document
     .findAll({ where: { UserId: req.query.UserId } })
-    .then(document => res.status(200).send(document))
-    .catch(error => res.status(400).send(error));
+    .then(document => res.status(200).send(document));
   },
-
 
   getDateDoc(req, res) {
     return Document
     .findAll({ where: { createdAt: { $contain: req.query.date } } })
-    .then(document => res.status(200).send(document))
-    .catch(error => res.status(400).send(error));
+    .then(document => res.status(200).send(document));
   },
 
   updateDoc(req, res) {
@@ -59,12 +58,15 @@ export default {
           message: 'Document Not Found',
         });
       }
+      if (document.UserId !== req.decoded.UserId) {
+        return res.status(403).send({
+          message: 'You cannot update this document'
+        });
+      }
       return document
         .update(req.body)
-        .then(() => res.status(200).send(document))
-        .catch((error) => res.status(400).send(error));
-    })
-    .catch((error) => res.status(400).send(error));
+        .then(() => res.status(200).send(document));
+    });
   },
 
   deleteDoc(req, res) {
@@ -76,13 +78,16 @@ export default {
             message: 'Document Not Found',
           });
         }
+        if (document.UserId !== req.decoded.UserId) {
+          return res.status(403).send({
+            message: 'You cannot delete this document'
+          });
+        }
         return document
           .destroy()
           .then(() => res.status(200).send({
             message: 'Document Deleted'
-          }))
-          .catch(error => res.status(400).send(error));
-      })
-      .catch(error => res.status(400).send(error));
+          }));
+      });
   },
 };

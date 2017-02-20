@@ -18,15 +18,14 @@ export default {
         return res.status(201).send({ user, token });
       })
       .catch((error) => {
-        res.status(500).send(error);
+        res.status(400).send(error);
       });
   },
 
   listUsers(req, res) {
     return User
     .all()
-    .then(user => res.status(200).send(user))
-    .catch(error => res.status(400).send(error));
+    .then(user => res.status(200).send(user));
   },
 
   getUser(req, res) {
@@ -39,17 +38,13 @@ export default {
         });
       }
       res.status(200).send(user);
-    })
-    .catch(error => {
-      res.status(400).send(error);
     });
   },
 
   getUserDoc(req, res) {
     return Doc
     .findAll({ where: { UserId: req.params.id } })
-    .then(user => res.status(200).send(user))
-    .catch(error => res.status(400).send(error));
+    .then(user => res.status(200).send(user));
   },
 
   updateUser(req, res) {
@@ -61,12 +56,15 @@ export default {
           message: 'User Not Found',
         });
       }
+      if (user.id !== req.decoded.UserId) {
+        return res.status(404).send({
+          message: 'You cannot update this user',
+        });
+      }
       return user
         .update(req.body)
-        .then(() => res.status(200).send(user))
-        .catch((error) => res.status(400).send(error));
-    })
-    .catch((error) => res.status(400).send(error));
+        .then(() => res.status(200).send(user));
+    });
   },
 
   deleteUser(req, res) {
@@ -82,10 +80,8 @@ export default {
           .destroy()
           .then(() => res.status(200).send({
             message: 'User Deleted'
-          }))
-          .catch(error => res.status(400).send(error));
-      })
-      .catch(error => res.status(400).send(error));
+          }));
+      });
   },
 
   login(req, res) {
@@ -100,7 +96,7 @@ export default {
             .send({ token, expiresIn: '2 days' });
         }
         return res.status(401)
-          .send({ message: 'Log in Failed' });
+          .send({ message: 'Login Failed' });
       });
   },
 

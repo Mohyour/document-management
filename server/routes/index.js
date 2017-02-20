@@ -11,8 +11,8 @@ export default (app) => {
   }));
 
   app.post('/roles', auth.verifyToken, auth.adminAccess, roleController.createRole);
-  app.get('/roles', auth.verifyToken, roleController.listRoles);
-  app.get('/roles/:id', roleController.getRole);
+  app.get('/roles', auth.verifyToken, auth.adminAccess, roleController.listRoles);
+  app.get('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.getRole);
   app.put('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.updateRole);
   app.delete('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.deleteRole);
 
@@ -26,11 +26,11 @@ export default (app) => {
   app.post('/login', userController.login);
   app.post('/logout', userController.logout);
 
-  app.post('/documents', docController.createDoc);
-  app.get('/documents', docController.listDocs);
-  app.get('/documents/role', auth.verifyToken, docController.getRoleDoc);
-  app.get('/documents/user', auth.verifyToken, docController.getUserDoc);
-  app.get('/documents/date', auth.verifyToken, docController.getDateDoc);
+  app.post('/documents', auth.verifyToken, docController.createDoc);
+  app.get('/documents', auth.verifyToken, docController.listDocs);
+  app.get('/documents/role', auth.verifyToken, auth.adminAccess, docController.getRoleDoc);
+  app.get('/documents/user', auth.verifyToken, auth.adminAccess, docController.getUserDoc);
+  app.get('/documents/date', auth.verifyToken, auth.adminAccess, docController.getDateDoc);
   app.get('/documents/:id', auth.verifyToken, docController.getDoc);
   app.put('/documents/:id', auth.verifyToken, docController.updateDoc);
   app.delete('/documents/:id', auth.verifyToken, docController.deleteDoc);
