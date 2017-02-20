@@ -19,7 +19,7 @@ module.exports = {
     }], { individualHooks: true });
   },
 
-  down(queryInterface, Sequelize) {
+  down(queryInterface, Sequelize) { // eslint-disable-line no-unused-vars
       // Add reverting commands here.
       // Return a promise to correctly handle asynchronicity.
     return queryInterface.delete('Users', null, {});
