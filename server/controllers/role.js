@@ -15,8 +15,7 @@ export default {
   listRoles(req, res) {
     return Role
     .all()
-    .then(role => res.status(200).send(role))
-    .catch(error => res.status(400).send(error));
+    .then(role => res.status(200).send(role));
   },
 
   getRole(req, res) {
@@ -29,9 +28,6 @@ export default {
         });
       }
       res.status(200).send(role);
-    })
-    .catch(error => {
-      res.status(400).send(error);
     });
   },
 
@@ -48,10 +44,8 @@ export default {
         .update(req.body)
         .then(() => {
           res.status(200).send(role);
-        })
-        .catch((error) => res.status(400).send(error));
-    })
-    .catch((error) => res.status(400).send(error));
+        });
+    });
   },
 
   deleteRole(req, res) {
@@ -67,9 +61,7 @@ export default {
           .destroy()
           .then(() => res.status(200).send({
             message: 'Role Deleted'
-          }))
-          .catch(error => res.status(400).send(error));
-      })
-      .catch(error => res.status(400).send(error));
+          }));
+      });
   },
 };

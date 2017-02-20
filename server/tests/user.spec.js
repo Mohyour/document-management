@@ -42,11 +42,45 @@ describe('User api', () => {
 
   after(() => model.sequelize.sync({ force: true }));
 
+  describe('Post: (/login) - User sign in', () => {
+    it('Should sign a user in with correct username and password', (done) => {
+      request.post('/login')
+        .send({ username: adminUserParam.username,
+          password: adminUserParam.password })
+        .expect(200)
+        .end((err, res) => {
+          expect(typeof res.body.token).to.equal('string');
+          expect(res.body.expiresIn).to.equal('2 days');
+          done();
+        });
+    });
+
+    it('Should fail for incorrect username and/or password', (done) => {
+      request.post('/login')
+        .send({ username: 'incorrect user',
+          password: 'incorrect password' })
+        .expect(401)
+        .end((err, res) => {
+          expect(res.body.message).to.equal('Login Failed');
+          done();
+        });
+    });
+
+    it('Should log a user out', (done) => {
+      request.post('/logout')
+        .expect(200)
+        .end((err, res) => {
+          expect(res.body.message).to.equal('Successful logout');
+          done();
+        });
+    });
+  });
+
   describe('Post: (/users) - Create a user', () => {
     it('Should create a unique user', (done) => {
       request.post('/users')
         .send(adminUserParam)
-        .expect(500)
+        .expect(400)
         .end((err, res) => {
           expect(res.body.errors[0].type).to.equal('unique violation');
           done();
@@ -94,7 +128,7 @@ describe('User api', () => {
   });
 
   describe('Get: (/users/) - Get a user', () => {
-    it('should not return a user id is invalid', (done) => {
+    it('should not return a user if id is invalid', (done) => {
       request.get('/users/123')
         .set({ 'x-access-token': adminToken })
         .expect(404)
@@ -104,7 +138,7 @@ describe('User api', () => {
         });
     });
 
-    it('Should return all users to an admin', (done) => {
+    it('Should return all users', (done) => {
       request.get('/users')
         .set({ 'x-access-token': adminToken })
         .expect(200)
@@ -120,7 +154,7 @@ describe('User api', () => {
         });
     });
 
-    it('should return the user with a correct id', (done) => {
+    it('should return user with a correct id', (done) => {
       request.get(`/users/${regularUser.id}`)
         .set({ 'x-access-token': adminToken })
         .end((error, response) => {
@@ -129,26 +163,19 @@ describe('User api', () => {
           done();
         });
     });
+
+    it('should return the documents belonging to a user', (done) => {
+      request.get('/users/2/documents')
+      .set({ 'x-access-token': adminToken })
+      .end((error, response) => {
+        expect(response.status).to.equal(200);
+        expect(response.body.length).to.equal(0);
+        done();
+      });
+    });
   });
 
   describe('Put: (/users/:id) - Update a user', () => {
-    it('Should edit and update a user', (done) => {
-      request.put(`/users/${regularUser.id}`)
-        .set({ 'x-access-token': regularToken })
-        .send({
-          firstname: 'Moyosore',
-          lastname: 'Sosan',
-          password: 'mypassword'
-        })
-        .expect(200)
-        .end((err, res) => {
-          expect(typeof res.body).to.equal('object');
-          expect(res.body.firstname).to.equal('Moyosore');
-          expect(res.body.lastname).to.equal('Sosan');
-          done();
-        });
-    });
-
     it('Should fail to update a user that does not exist', (done) => {
       request.put('/users/783')
         .set({ 'x-access-token': regularToken })
@@ -169,10 +196,42 @@ describe('User api', () => {
           done();
         });
     });
+
+
+    it('Should fail to update a user if request is not made by the user', (done) => {
+      request.put('/users/1')
+        .set({ 'x-access-token': regularToken })
+        .send({
+          firstname: 'Moyosore',
+          lastname: 'Sosan',
+        })
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('You cannot update this user');
+          done();
+        });
+    });
+
+    it('Should edit and update a user', (done) => {
+      request.put(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': regularToken })
+        .send({
+          firstname: 'Moyosore',
+          lastname: 'Sosan',
+        })
+        .expect(200)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.firstname).to.equal('Moyosore');
+          expect(res.body.lastname).to.equal('Sosan');
+          done();
+        });
+    });
   });
 
   describe('Delete (users/:id) - Delete a user', () => {
-    it('Should fail to delete a user by a different user', (done) => {
+    it('Should fail to delete a user by non-admin user', (done) => {
       request.delete(`/users/${regularUser.id}`)
         .set({ 'x-access-token': regularToken })
         .expect(403)
@@ -185,7 +244,7 @@ describe('User api', () => {
     });
 
     it('Should fail to delete a user if user is not authorized', (done) => {
-      request.put('/users/783')
+      request.delete('/users/1')
         .expect(404)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
