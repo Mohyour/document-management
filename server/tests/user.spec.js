@@ -245,6 +245,41 @@ describe('User api', () => {
 
     it('Should fail to delete a user if user is not authorized', (done) => {
       request.put('/users/783')
+        .set({ 'x-access-token': regularToken })
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('Not Authorized');
+          done();
+        });
+    });
+
+    it('Should fail to update a user if user is not authorized', (done) => {
+      request.put('/users/783')
+        .expect(404)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('Not Authorized');
+          done();
+        });
+    });
+  });
+
+  describe('Delete (users/:id) - Delete a user', () => {
+    it('Should fail to delete a user by a different user', (done) => {
+      request.delete(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': regularToken })
+        .expect(403)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message)
+            .to.equal('Only an admin is authorized for this request');
+          done();
+        });
+    });
+
+    it('Should fail to delete a user if user is not authorized', (done) => {
+      request.put('/users/783')
         .expect(404)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
