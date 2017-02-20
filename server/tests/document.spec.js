@@ -87,7 +87,7 @@ describe('Documnet api', () => {
 
     it('Should ensure that document has an owner', (done) => {
       request.post('/documents')
-        .set({ 'x-access-token': adminToken })
+        .set({ 'x-access-token': regularToken })
         .send(documentTwo)
         .expect(201)
         .end((err, res) => {
@@ -138,9 +138,19 @@ describe('Documnet api', () => {
         });
     });
 
-    it('Should fail to return a document to non-permited users', (done) => {
-      request.get('/documents/4')
+    it('Should fail to return document that does not exist', (done) => {
+      request.get('/documents/123')
         .set({ 'x-access-token': adminToken })
+        .expect(404)
+        .end((err, res) => {
+          expect(res.body.message).to.equal('Document Not Found');
+          done();
+        });
+    });
+
+    it('Should fail to return a document to non-permited users', (done) => {
+      request.get('/documents/1')
+        .set({ 'x-access-token': regularToken })
         .expect(200).end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message).to.equal('You cannot view this document');

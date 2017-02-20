@@ -4,6 +4,7 @@ const Document = model.Document;
 
 export default {
   createDoc(req, res) {
+    req.body.UserId = req.decoded.UserId;
     return Document
       .create(req.body)
       .then(document => res.status(201).send(document))
@@ -22,6 +23,11 @@ export default {
     return Document
     .findById(req.params.id)
     .then((document) => {
+      if (!document) {
+        return res.status(404).send({
+          message: 'Document Not Found'
+        });
+      }
       if (document.RoleId === req.decoded.RoleId || document.UserId === req.decoded.UserId) {
         return res.status(200).send(document);
       }

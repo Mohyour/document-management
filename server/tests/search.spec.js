@@ -71,26 +71,20 @@ describe('Search api (documents/)', () => {
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body[0].UserId).to.equal(1);
-          expect(res.body.length).to.equal(1);
+          expect(res.body.length).to.equal(2);
           done();
         });
     });
 
     it('Should search a document by role that can access it', (done) => {
-      request.post('/documents')
+      request.get('/documents/role?RoleId=1')
         .set({ 'x-access-token': adminToken })
-        .send(documentTwo)
+        .expect(201)
         .end((err, res) => {
-          document = res.body;
-          request.get('/documents/role?RoleId=1')
-            .set({ 'x-access-token': adminToken })
-            .expect(201)
-            .end((err, res) => {
-              expect(typeof res.body).to.equal('object');
-              expect(res.body[0].RoleId).to.equal(1);
-              expect(res.body.length).to.equal(1);
-              done();
-            });
+          expect(typeof res.body).to.equal('object');
+          expect(res.body[0].RoleId).to.equal(1);
+          expect(res.body.length).to.equal(1);
+          done();
         });
     });
   });
