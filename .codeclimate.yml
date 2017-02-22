@@ -1,4 +1,9 @@
 engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - javascript
   eslint:
     enabled: true
     channel: "eslint-3"
@@ -14,5 +19,6 @@ engines:
 ratings:
   paths:
     - "**.js"
+    - "**.jsx"
   exclude_paths:
-    - "node_modules"
+    - node_modules/**/*

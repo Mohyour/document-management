@@ -11,14 +11,12 @@ export default (sequelize, DataTypes) => {
   }, {
     classMethods: {
       associate(models) {
-        // associations can be defined here
+        // model association
         Document.belongsTo(models.User, {
-          foreignkey: { allowNull: true },
-          onDelete: 'CASCADE'
+          foreignkey: { allowNull: true }
         });
         Document.belongsTo(models.Role, {
-          foreignkey: { allowNull: true },
-          onDelete: 'CASCADE'
+          foreignkey: { allowNull: true }
         });
       }
     }

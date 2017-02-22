@@ -1,8 +1,8 @@
 import chai from 'chai';
 import supertest from 'supertest';
-import model from '../models';
-import app from '../../server';
-import helper from './test-helper';
+import model from '../../models';
+import app from '../../../server';
+import helper from '../test-helper';
 
 const request = supertest.agent(app);
 const expect = chai.expect;

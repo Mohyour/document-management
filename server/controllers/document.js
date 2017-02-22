@@ -49,12 +49,6 @@ export default {
     .then(document => res.status(200).send(document));
   },
 
-  getDateDoc(req, res) {
-    return Document
-    .findAll({ where: { createdAt: { $contain: req.query.date } } })
-    .then(document => res.status(200).send(document));
-  },
-
   updateDoc(req, res) {
     return Document
     .findById(req.params.id, {})

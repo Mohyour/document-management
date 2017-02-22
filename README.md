@@ -82,6 +82,6 @@ DELETE	| /documents/:id |	Remove a specific document from storage
 * Create a new branch for included feature(s).
 * Raise a pull request.
 
-This application was developed using NodeJs with express for routing. Postgres was user for persisting data with Sequelize as ORM.
+This application was developed using NodeJs with express for routing. Postgres was used for persisting data with Sequelize as ORM.
 
 _Source code employs ES6 syntax traspiled down to ES5 using Babel._

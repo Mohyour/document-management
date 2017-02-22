@@ -6,32 +6,42 @@ const docController = controller.document;
 const roleController = controller.role;
 
 export default (app) => {
-  app.get('/info', (req, res) => res.status(200).send({
+  app.get('/', (req, res) => res.status(200).send({
     message: 'Welcome to Document Management System!',
   }));
 
-  app.post('/roles', auth.verifyToken, auth.adminAccess, roleController.createRole);
-  app.get('/roles', auth.verifyToken, auth.adminAccess, roleController.listRoles);
-  app.get('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.getRole);
-  app.put('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.updateRole);
-  app.delete('/roles/:id', auth.verifyToken, auth.adminAccess, roleController.deleteRole);
+  app.route('/roles')
+    .post(auth.verifyToken, auth.adminAccess, roleController.createRole)
+    .get(auth.verifyToken, auth.adminAccess, roleController.listRoles);
 
-  app.post('/users', userController.createUser);
-  app.get('/users', auth.verifyToken, auth.adminAccess, userController.listUsers);
-  app.get('/users/:id', auth.verifyToken, userController.getUser);
-  app.get('/users/:id/documents', auth.verifyToken, userController.getUserDoc);
-  app.put('/users/:id', auth.verifyToken, userController.updateUser);
-  app.delete('/users/:id', auth.verifyToken, auth.adminAccess, userController.deleteUser);
+  app.route('/roles/:id')
+    .get(auth.verifyToken, auth.adminAccess, roleController.getRole)
+    .put(auth.verifyToken, auth.adminAccess, roleController.updateRole)
+    .delete(auth.verifyToken, auth.adminAccess, roleController.deleteRole);
+
+  app.route('/users')
+    .post(userController.createUser)
+    .get(auth.verifyToken, auth.adminAccess, userController.listUsers);
+
+  app.route('/users/:id')
+    .get(auth.verifyToken, auth.adminAccess, userController.getUser)
+    .put(auth.verifyToken, userController.updateUser)
+    .delete(auth.verifyToken, auth.adminAccess, userController.deleteUser);
+
+  app.get('/users/:id/documents', auth.verifyToken, auth.adminAccess, userController.getUserDoc);
 
   app.post('/login', userController.login);
   app.post('/logout', userController.logout);
 
-  app.post('/documents', auth.verifyToken, docController.createDoc);
-  app.get('/documents', auth.verifyToken, docController.listDocs);
+  app.route('/documents')
+    .post(auth.verifyToken, docController.createDoc)
+    .get(auth.verifyToken, docController.listDocs);
+
   app.get('/documents/role', auth.verifyToken, auth.adminAccess, docController.getRoleDoc);
   app.get('/documents/user', auth.verifyToken, auth.adminAccess, docController.getUserDoc);
-  app.get('/documents/date', auth.verifyToken, auth.adminAccess, docController.getDateDoc);
-  app.get('/documents/:id', auth.verifyToken, docController.getDoc);
-  app.put('/documents/:id', auth.verifyToken, docController.updateDoc);
-  app.delete('/documents/:id', auth.verifyToken, docController.deleteDoc);
+
+  app.route('/documents/:id')
+    .get(auth.verifyToken, docController.getDoc)
+    .put(auth.verifyToken, docController.updateDoc)
+    .delete(auth.verifyToken, docController.deleteDoc);
 };

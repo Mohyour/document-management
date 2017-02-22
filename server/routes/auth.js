@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import jwtDecode from 'jwt-decode';
 import model from '../models';
 
 const secret = process.env.SECRET_TOKEN || 'secret';
@@ -8,7 +7,7 @@ const verifyToken = (req, res, next) => {
   const token = req.headers.authorization || req.headers['x-access-token'];
   if (!token) {
     return res.status(401)
-      .send({ message: 'Not Authorized' });
+      .json({ message: 'Not Authorized' });
   }
 
   jwt.verify(token, secret, (error, decoded) => {
@@ -22,14 +21,8 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-const decodeToken = (req) => {
-  const token = req.headers.authorization || req.headers['x-access-token'];
-  const decodedToken = jwtDecode(token);
-  return decodedToken.RoleId;
-};
-
 const adminAccess = (req, res, next) => {
-  const roleId = decodeToken(req);
+  const roleId = req.decoded.RoleId;
   model.Role.findById(roleId)
     .then((foundRole) => {
       if (foundRole.title.toLowerCase() === 'admin') {

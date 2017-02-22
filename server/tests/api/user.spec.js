@@ -2,9 +2,9 @@
 
 import chai from 'chai';
 import supertest from 'supertest';
-import model from '../models';
-import app from '../../server';
-import helper from './test-helper';
+import model from '../../models';
+import app from '../../../server';
+import helper from '../test-helper';
 
 const request = supertest.agent(app);
 const expect = chai.expect;
@@ -14,6 +14,7 @@ const regularRoleParam = helper.regularRole;
 const adminUserParam = helper.adminUser;
 const regularUserParam = helper.regularUser;
 const testUserParam = helper.testUser;
+const documentOneParam = helper.testDocument;
 
 
 describe('User api', () => {
@@ -29,6 +30,7 @@ describe('User api', () => {
         adminUserParam.RoleId = adminRole.id;
         regularUserParam.RoleId = regularRole.id;
         testUserParam.RoleId = regularRole.id;
+        documentOneParam.RoleId = adminRole.id;
 
         request.post('/users')
           .send(adminUserParam)
@@ -139,17 +141,15 @@ describe('User api', () => {
     });
 
     it('Should return all users', (done) => {
+      const fields = ['id', 'username', 'lastname', 'email', 'password', 'RoleId'];
       request.get('/users')
         .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {
           expect(Array.isArray(res.body)).to.equal(true);
-          expect(res.body[0]).to.have.property('id');
-          expect(res.body[0]).to.have.property('firstname');
-          expect(res.body[0]).to.have.property('lastname');
-          expect(res.body[0]).to.have.property('username');
-          expect(res.body[0]).to.have.property('email');
-          expect(res.body[0]).to.have.property('RoleId');
+          fields.forEach((field) => {
+            expect(res.body[0]).to.have.property(field);
+          });
           done();
         });
     });
@@ -165,12 +165,17 @@ describe('User api', () => {
     });
 
     it('should return the documents belonging to a user', (done) => {
-      request.get('/users/2/documents')
+      request.post('/documents')
       .set({ 'x-access-token': adminToken })
-      .end((error, response) => {
-        expect(response.status).to.equal(200);
-        expect(response.body.length).to.equal(0);
-        done();
+      .send(documentOneParam)
+      .then((document) => {
+        request.get('/users/1/documents')
+        .set({ 'x-access-token': adminToken })
+        .end((error, response) => {
+          expect(response.status).to.equal(200);
+          expect(response.body.length).to.equal(1);
+          done();
+        });
       });
     });
   });
@@ -243,6 +248,18 @@ describe('User api', () => {
         });
     });
 
+    it('Should fail to delete admin user', (done) => {
+      request.delete(`/users/${adminUser.id}`)
+        .set({ 'x-access-token': adminToken })
+        .expect(403)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message)
+            .to.equal('You cannot delete an admin');
+          done();
+        });
+    });
+
     it('Should fail to delete a user if user is not authorized', (done) => {
       request.delete('/users/1')
         .expect(404)
@@ -265,7 +282,7 @@ describe('User api', () => {
     });
 
     it('Should find and delete a user if user exist', (done) => {
-      request.delete('/users/1')
+      request.delete(`/users/${regularUser.id}`)
         .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {

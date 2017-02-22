@@ -29,7 +29,7 @@ export default (sequelize, DataTypes) => {
   }, {
     classMethods: {
       associate: (models) => {
-        // associations can be defined here
+        // model association
         User.hasMany(models.Document, {
           foreignkey: { allowNull: true }
         });

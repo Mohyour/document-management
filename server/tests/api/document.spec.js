@@ -1,8 +1,8 @@
 import chai from 'chai';
 import supertest from 'supertest';
-import model from '../models';
-import app from '../../server';
-import helper from './test-helper';
+import model from '../../models';
+import app from '../../../server';
+import helper from '../test-helper';
 
 const request = supertest.agent(app);
 const expect = chai.expect;
@@ -107,7 +107,7 @@ describe('Documnet api', () => {
       request.post('/documents')
         .set({ 'x-access-token': adminToken })
         .send(nullTitleDoc)
-        .expect(201)
+        .expect(500)
         .end((err, res) => {
           expect(res.body.errors[0].message).to.equal('title cannot be null');
           done();

@@ -8,10 +8,9 @@ export default (sequelize, DataTypes) => {
   }, {
     classMethods: {
       associate(models) {
-        // associations can be defined here
+        // model association
         Role.hasMany(models.User, {
-          foreignkey: 'id',
-          onDelete: 'CASCADE'
+          foreignkey: 'id'
         });
       }
     }

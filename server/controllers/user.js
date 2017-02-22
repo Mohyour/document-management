@@ -8,6 +8,11 @@ const secret = process.env.SECRET_TOKEN || 'secret';
 
 export default {
   createUser(req, res) {
+    if (req.RoleId && req.decoded.RoleId !== 1) {
+      return res.status(403).send({
+        message: 'You are not permitted to assign this user to a role',
+      });
+    }
     return User
       .create(req.body)
       .then(user => {
@@ -57,7 +62,7 @@ export default {
         });
       }
       if (user.id !== req.decoded.UserId) {
-        return res.status(404).send({
+        return res.status(403).send({
           message: 'You cannot update this user',
         });
       }
@@ -73,7 +78,12 @@ export default {
       .then(user => {
         if (!user) {
           return res.status(400).send({
-            message: 'User Not Found',
+            message: 'User Not Found'
+          });
+        }
+        if (user.RoleId === 1) {
+          return res.status(403).send({
+            message: 'You cannot delete an admin'
           });
         }
         return user
