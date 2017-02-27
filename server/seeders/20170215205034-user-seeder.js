@@ -13,7 +13,7 @@ module.exports = {
       lastname: userValues.lastname || process.env.LASTNAME,
       email: userValues.email || process.env.EMAIL,
       password: hashedPassword,
-      RoleId: userValues.role,
+      RoleId: userValues.role || process.env.ROLE,
       createdAt: Sequelize.fn(('NOW')),
       updatedAt: Sequelize.fn(('NOW'))
     }], { individualHooks: true });
