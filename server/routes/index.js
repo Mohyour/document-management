@@ -38,7 +38,7 @@ export default (app) => {
     .get(auth.verifyToken, docController.listDocs);
 
   app.get('/documents/role', auth.verifyToken, auth.adminAccess, docController.getRoleDoc);
-  app.get('/documents/user', auth.verifyToken, auth.adminAccess, docController.getUserDoc);
+  app.get('/documents/search', auth.verifyToken, docController.searchDoc);
 
   app.route('/documents/:id')
     .get(auth.verifyToken, docController.getDoc)
