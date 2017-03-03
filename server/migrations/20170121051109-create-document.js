@@ -25,12 +25,12 @@ module.exports = {
           key: 'id'
         }
       },
-      RoleId: {
-        type: Sequelize.INTEGER,
+      access: {
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: 'Roles',
-          key: 'id'
+        defaultValue: 'public',
+        validate: {
+          isIn: [['private', 'public', 'role']]
         }
       },
       createdAt: {

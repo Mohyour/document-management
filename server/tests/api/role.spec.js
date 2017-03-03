@@ -82,7 +82,7 @@ describe('Role api', () => {
         .send(regularRole)
         .end((err, res) => {
           if (err) return done(err);
-          expect(res.body.errors[0].message).to.equal('title must be unique');
+          expect(res.body.message).to.equal('Validation error');
           done();
         });
     });
@@ -104,10 +104,10 @@ describe('Role api', () => {
       request.post('/roles')
         .set({ 'x-access-token': adminToken })
         .send()
-        .expect(500)
+        .expect(400)
         .end((err, res) => {
           if (err) return done(err);
-          expect(res.body.errors[0].message).to.equal('title cannot be null');
+          expect(res.body.message).to.equal('notNull Violation: title cannot be null');
           done();
         });
     });

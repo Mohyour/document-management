@@ -33,14 +33,12 @@ describe('Search api (documents/)', () => {
             adminUser = response.body.user;
             adminToken = response.body.token;
             documentOne.UserId = adminUser.id;
-            documentOne.RoleId = adminRole.id;
 
             request.post('/users')
               .send(regularUserParam)
               .end((err, res) => {
                 regularUser = res.body.user;
                 documentTwo.UserId = regularUser.id;
-                documentTwo.RoleId = regularRole.id;
 
                 request.post('/documents')
                 .set({ 'x-access-token': adminToken })
@@ -77,12 +75,12 @@ describe('Search api (documents/)', () => {
     });
 
     it('Should search a document by role that can access it', (done) => {
-      request.get('/documents/role?RoleId=1')
+      request.get('/documents/role?access=public')
         .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body[0].RoleId).to.equal(1);
+          expect(res.body[0].access).to.equal('public');
           expect(res.body.length).to.equal(1);
           done();
         });

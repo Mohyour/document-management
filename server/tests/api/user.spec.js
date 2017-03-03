@@ -84,7 +84,7 @@ describe('User api', () => {
         .send(adminUserParam)
         .expect(400)
         .end((err, res) => {
-          expect(res.body.errors[0].type).to.equal('unique violation');
+          expect(res.body.message).to.equal('Validation error');
           done();
         });
     });
@@ -122,8 +122,7 @@ describe('User api', () => {
         .send(testUserParam)
         .expect(500)
         .end((err, res) => {
-          expect(res.body.errors[0].message).to.equal('email cannot be null');
-          expect(res.body.errors[1].message).to.equal('password cannot be null');
+          expect(res.body.message).to.equal('notNull Violation: email cannot be null,\nnotNull Violation: password cannot be null');
           done();
         });
     });
@@ -141,7 +140,7 @@ describe('User api', () => {
     });
 
     it('Should return all users', (done) => {
-      const fields = ['id', 'username', 'lastname', 'email', 'password', 'RoleId'];
+      const fields = ['id', 'username', 'lastname', 'email', 'RoleId'];
       request.get('/users')
         .set({ 'x-access-token': adminToken })
         .expect(200)
@@ -248,14 +247,14 @@ describe('User api', () => {
         });
     });
 
-    it('Should fail to delete admin user', (done) => {
+    it('Should fail when admin wants to delete self', (done) => {
       request.delete(`/users/${adminUser.id}`)
         .set({ 'x-access-token': adminToken })
         .expect(403)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message)
-            .to.equal('You cannot delete an admin');
+            .to.equal('You cannot delete yourself');
           done();
         });
     });

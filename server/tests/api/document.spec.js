@@ -33,7 +33,7 @@ describe('Documnet api', () => {
             adminUser = response.body.user;
             adminToken = response.body.token;
             documentOne.UserId = adminUser.id;
-            documentOne.RoleId = adminRole.id;
+            documentOne.access = 'private';
 
             request.post('/users')
               .send(regularUserParam)
@@ -41,7 +41,7 @@ describe('Documnet api', () => {
                 regularUser = res.body.user;
                 regularToken = res.body.token;
                 documentTwo.UserId = regularUser.id;
-                documentTwo.RoleId = regularRole.id;
+                documentTwo.access = 'public';
                 done();
               });
           });
@@ -79,7 +79,7 @@ describe('Documnet api', () => {
             .set({ 'x-access-token': adminToken })
             .send(documentOne)
             .end((err, res) => {
-              expect(res.body.errors[0].message).to.equal('title must be unique');
+              expect(res.body.message).to.equal('Validation error');
               done();
             });
         });
@@ -98,7 +98,7 @@ describe('Documnet api', () => {
     });
 
     it('Should ensure that document has a role that can access it', (done) => {
-      expect(document.RoleId).to.equal(regularRole.id);
+      expect(document.access).to.equal('public');
       done();
     });
 
@@ -109,7 +109,7 @@ describe('Documnet api', () => {
         .send(nullTitleDoc)
         .expect(500)
         .end((err, res) => {
-          expect(res.body.errors[0].message).to.equal('title cannot be null');
+          expect(res.body.message).to.equal('notNull Violation: title cannot be null');
           done();
         });
     });

@@ -6,13 +6,27 @@ const Doc = model.Document;
 
 const secret = process.env.SECRET_TOKEN || 'secret';
 
+const removePassword = (user) => {
+  const attributes = {
+    id: user.id,
+    username: user.username,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    email: user.email,
+    RoleId: user.RoleId
+  };
+  return attributes;
+};
+
 export default {
+
+  /**
+   * createUser - Create a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   createUser(req, res) {
-    if (req.RoleId && req.decoded.RoleId !== 1) {
-      return res.status(403).send({
-        message: 'You are not permitted to assign this user to a role',
-      });
-    }
     return User
       .create(req.body)
       .then(user => {
@@ -20,19 +34,46 @@ export default {
           UserId: user.id,
           RoleId: user.RoleId
         }, secret, { expiresIn: '2 days' });
+        user = removePassword(user);
         return res.status(201).send({ user, token });
       })
       .catch((error) => {
-        res.status(400).send(error);
+        res.status(400).send({
+          message: error.message,
+        });
       });
   },
 
+  /**
+   * listUsers - List users
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   listUsers(req, res) {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
     return User
-    .all()
-    .then(user => res.status(200).send(user));
+    .findAndCountAll({
+      attributes: ['id', 'username', 'firstname', 'lastname', 'email', 'RoleId'],
+      limit: limit || null,
+      offset: offset || null,
+      order: '"createdAt" DESC'
+    })
+    .then((user) => {
+      const metadata = limit && offset ? { count: user.count,
+        pages: Math.ceil(user.count / limit),
+        currentPage: Math.floor(offset / limit) + 1 } : null;
+      res.status(200).send({ user: user.rows, metadata });
+    });
   },
 
+  /**
+   * getUser - Get a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   getUser(req, res) {
     return User
     .findById(req.params.id)
@@ -46,13 +87,40 @@ export default {
     });
   },
 
+  /**
+   * getUserDoc - Get documents belonging to a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   getUserDoc(req, res) {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
     return Doc
-    .findAll({ where: { UserId: req.params.id } })
-    .then(user => res.status(200).send(user));
+    .findAndCountAll({ where: { UserId: req.params.id },
+      limit: limit || null,
+      offset: offset || null,
+      order: '"createdAt" DESC' })
+    .then((user) => {
+      const metadata = limit && offset ? { count: user.count,
+        pages: Math.ceil(user.count / limit),
+        currentPage: Math.floor(offset / limit) + 1 } : null;
+      res.status(200).send({ user: user.rows, metadata });
+    });
   },
 
+  /**
+   * updateUser - Updates a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   updateUser(req, res) {
+    if ((req.body.RoleId) && (req.decoded.RoleId !== 1)) {
+      return res.status(403).send({
+        message: 'You are not permitted to assign this user to a role',
+      });
+    }
     return User
     .findById(req.params.id, {})
     .then(user => {
@@ -72,6 +140,12 @@ export default {
     });
   },
 
+  /**
+   * deleteUser - Deletes a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   deleteUser(req, res) {
     return User
       .findById(req.params.id)
@@ -81,9 +155,9 @@ export default {
             message: 'User Not Found'
           });
         }
-        if (user.RoleId === 1) {
+        if (user.id === req.decoded.UserId) {
           return res.status(403).send({
-            message: 'You cannot delete an admin'
+            message: 'You cannot delete yourself'
           });
         }
         return user
@@ -94,6 +168,12 @@ export default {
       });
   },
 
+  /**
+   * login - Logs in a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   login(req, res) {
     User.findOne({ where: { username: req.body.username } })
       .then((foundUser) => {
@@ -110,6 +190,12 @@ export default {
       });
   },
 
+  /**
+   * logout - Logs out a user
+   * @param {Object} req Request Object
+   * @param {Object} res Response Object
+   * @returns {object} Response Object
+   */
   logout(req, res) {
     return res.status(200)
       .send({ message: 'Successful logout' });
