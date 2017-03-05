@@ -11,7 +11,7 @@
     "test": "npm run db && NODE_ENV=test mocha --compilers js:babel-core/register server/tests/**/*.spec.js",
     "cover": "npm run db && NODE_ENV=test istanbul cover _mocha -- server/tests/**/*.spec.js --compilers js:babel-core/register",
     "coveralls": "npm run cover && cat ./coverage/lcov.info | coveralls",
-    "heroku-postbuild": "NODE_ENV=production && npm run build && NODE_ENV=production npm run migrate && NODE_ENV=production npm run db:seed",
+    "heroku-postbuild": "NODE_ENV=production && npm run build",
     "build": "rm -rf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./tests,./coverage --copy-files",
     "start": "node dist/server.js"
   },
@@ -67,6 +67,7 @@
     "pg": "^6.1.2",
     "pg-hstore": "^2.3.2",
     "sequelize": "^3.29.0",
-    "supertest": "^3.0.0"
+    "supertest": "^3.0.0",
+    "sequelize-cli": "^2.5.1"
   }
 }

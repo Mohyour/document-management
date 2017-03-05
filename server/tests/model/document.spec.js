@@ -7,7 +7,7 @@ import params from '../test-helper';
 const expect = chai.expect;
 const documentParams = params.testDocument;
 const userParams = params.regularUser;
-const requiredFields = ['title', 'content', 'UserId', 'RoleId'];
+const requiredFields = ['title', 'content', 'UserId', 'access'];
 
 describe('Document Model', () => {
   describe('How document model is created', () => {
@@ -18,7 +18,6 @@ describe('Document Model', () => {
         model.Role.create(params.adminRole)
         .then((createdRole) => {
           userParams.RoleId = createdRole.id;  // user's RoleId
-          documentParams.RoleId = createdRole.id; // role that can access document
           return model.User.create(userParams);
         })
         .then((createdUser) => {
@@ -74,7 +73,7 @@ describe('Document Model', () => {
       it('should create a document with role that can access it', (done) => {
         document.save()
           .then((createdDocument) => {
-            expect(createdDocument.RoleId).to.equal(1);
+            expect(createdDocument.access).to.equal('private');
             done();
           });
       });

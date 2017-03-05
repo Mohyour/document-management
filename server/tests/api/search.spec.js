@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import chai from 'chai';
 import supertest from 'supertest';
 import model from '../../models';
@@ -33,21 +34,19 @@ describe('Search api (documents/)', () => {
             adminUser = response.body.user;
             adminToken = response.body.token;
             documentOne.UserId = adminUser.id;
-            documentOne.RoleId = adminRole.id;
+            documentOne.title = 'test title';
 
             request.post('/users')
               .send(regularUserParam)
               .end((err, res) => {
                 regularUser = res.body.user;
                 documentTwo.UserId = regularUser.id;
-                documentTwo.RoleId = regularRole.id;
 
                 request.post('/documents')
                 .set({ 'x-access-token': adminToken })
                 .send(documentOne)
                 .end((err, res) => {
                   document = res.body;
-
                   request.post('/documents')
                   .set({ 'x-access-token': adminToken })
                   .send(documentTwo)
@@ -64,26 +63,27 @@ describe('Search api (documents/)', () => {
   after(() => model.sequelize.sync({ force: true }));
 
   describe('Get (/document)', () => {
-    it('Should search a document by user', (done) => {
-      request.get('/documents/user?UserId=1')
+    it('Should search a document for a string', (done) => {
+      request.get('/documents/search?query=test&limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body[0].UserId).to.equal(1);
-          expect(res.body.length).to.equal(2);
+          expect(res.body.documents).to.exist;
+          expect(res.body.documents[0].title).to.equal('test title');
+          expect(res.body.metadata).to.not.be.null;
           done();
         });
     });
 
     it('Should search a document by role that can access it', (done) => {
-      request.get('/documents/role?RoleId=1')
+      request.get('/documents/role?access=public&limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body[0].RoleId).to.equal(1);
-          expect(res.body.length).to.equal(1);
+          expect(res.body.documents[0].access).to.equal('public');
+          expect(res.body.metadata).to.not.be.null;
           done();
         });
     });

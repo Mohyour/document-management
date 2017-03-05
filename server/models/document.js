@@ -7,15 +7,20 @@ export default (sequelize, DataTypes) => {
     },
     content: {
       type: DataTypes.TEXT
+    },
+    access: {
+      type: DataTypes.STRING,
+      defaultValue: 'public',
+      validate: {
+        isIn: [['private', 'public', 'role']]
+      }
     }
+
   }, {
     classMethods: {
       associate(models) {
         // model association
         Document.belongsTo(models.User, {
-          foreignkey: { allowNull: true }
-        });
-        Document.belongsTo(models.Role, {
           foreignkey: { allowNull: true }
         });
       }

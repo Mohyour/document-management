@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import model from '../models';
 
-const secret = process.env.SECRET_TOKEN || 'secret';
+dotenv.config();
+
+const secret = process.env.SECRET_TOKEN;
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization || req.headers['x-access-token'];
@@ -12,7 +15,7 @@ const verifyToken = (req, res, next) => {
 
   jwt.verify(token, secret, (error, decoded) => {
     if (error) {
-      return res.status(401)
+      return res.status(406)
         .send({ message: 'Token Invalid' });
     }
 
