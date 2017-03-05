@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt-nodejs');
-// const userValues = require('../../data.json').user;
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 module.exports = {
   up(queryInterface, Sequelize) {

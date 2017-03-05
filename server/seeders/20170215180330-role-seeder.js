@@ -1,4 +1,6 @@
-// const roleValues = require('../../data.json').role;
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 module.exports = {
   up(queryInterface, Sequelize) {
