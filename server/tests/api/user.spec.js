@@ -34,9 +34,9 @@ describe('User api', () => {
 
         request.post('/users')
           .send(adminUserParam)
-          .end((error, response) => {
-            adminUser = response.body.user;
-            adminToken = response.body.token;
+          .end((err, res) => {
+            adminUser = res.body.user;
+            adminToken = res.body.token;
             done();
           });
       });
@@ -49,7 +49,7 @@ describe('User api', () => {
       request.post('/login')
         .send({ username: adminUserParam.username,
           password: adminUserParam.password })
-        .expect(200)
+        .expect(201)
         .end((err, res) => {
           expect(typeof res.body.token).to.equal('string');
           expect(res.body.expiresIn).to.equal('2 days');
@@ -106,7 +106,7 @@ describe('User api', () => {
     it('Should ensure that new user has a role', (done) => {
       request.post('/users')
         .set({ 'x-access-token': adminToken })
-        .expect(201)
+        .expect(200)
         .end((err, res) => {
           expect(regularUser).to.have.property('RoleId');
           expect(regularUser.RoleId).to.equal(2);
@@ -120,7 +120,7 @@ describe('User api', () => {
       request.post('/users')
         .set({ 'x-access-token': adminToken })
         .send(testUserParam)
-        .expect(500)
+        .expect(422)
         .end((err, res) => {
           expect(res.body.message).to.equal('notNull Violation: email cannot be null,\nnotNull Violation: password cannot be null');
           done();
@@ -129,6 +129,16 @@ describe('User api', () => {
   });
 
   describe('Get: (/users/) - Get a user', () => {
+    it('should fail to get request if token is invalid', (done) => {
+      request.get('/users/')
+        .set({ 'x-access-token': 'invalidXYZABCtoken' })
+        .expect(406)
+        .end((err, res) => {
+          expect(res.body.message).to.be.equal('Token Invalid');
+          done();
+        });
+    });
+
     it('should not return a user if id is invalid', (done) => {
       request.get('/users/123')
         .set({ 'x-access-token': adminToken })
@@ -139,16 +149,17 @@ describe('User api', () => {
         });
     });
 
-    it('Should return all users', (done) => {
+    it('Should return all users with pagination', (done) => {
       const fields = ['id', 'username', 'lastname', 'email', 'RoleId'];
-      request.get('/users')
+      request.get('/users?limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
         .expect(200)
         .end((err, res) => {
-          expect(Array.isArray(res.body)).to.equal(true);
+          expect(Array.isArray(res.body.users)).to.equal(true);
           fields.forEach((field) => {
-            expect(res.body[0]).to.have.property(field);
+            expect(res.body.users[0]).to.have.property(field);
           });
+          expect(res.body.metadata).to.not.be.null;
           done();
         });
     });
@@ -156,23 +167,24 @@ describe('User api', () => {
     it('should return user with a correct id', (done) => {
       request.get(`/users/${regularUser.id}`)
         .set({ 'x-access-token': adminToken })
-        .end((error, response) => {
-          expect(response.status).to.equal(200);
+        .end((err, res) => {
+          expect(res.status).to.equal(200);
           expect(regularUser.email).to.equal(regularUserParam.email);
           done();
         });
     });
 
-    it('should return the documents belonging to a user', (done) => {
+    it('should return the documents belonging to a user with pagination', (done) => {
       request.post('/documents')
       .set({ 'x-access-token': adminToken })
       .send(documentOneParam)
       .then((document) => {
-        request.get('/users/1/documents')
+        request.get('/users/1/documents?limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
-        .end((error, response) => {
-          expect(response.status).to.equal(200);
-          expect(response.body.length).to.equal(1);
+        .expect(200)
+        .end((err, res) => {
+          expect(res.body.documents.length).to.equal(1);
+          expect(res.body.metadata).to.not.be.null;
           done();
         });
       });
@@ -193,7 +205,7 @@ describe('User api', () => {
 
     it('Should fail to update a user if user is not authorized', (done) => {
       request.put('/users/783')
-        .expect(404)
+        .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message).to.equal('Not Authorized');
@@ -201,6 +213,20 @@ describe('User api', () => {
         });
     });
 
+    it('Should fail if a regular user is assigned an admin role by non-admin ', (done) => {
+      request.put(`/users/${regularUser.id}`)
+        .set({ 'x-access-token': regularToken })
+        .send({
+          RoleId: 1,
+          lastname: 'Ben',
+        })
+        .expect(401)
+        .end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('You are not permitted to assign this user to a role');
+          done();
+        });
+    });
 
     it('Should fail to update a user if request is not made by the user', (done) => {
       request.put('/users/1')
@@ -209,7 +235,7 @@ describe('User api', () => {
           firstname: 'Moyosore',
           lastname: 'Sosan',
         })
-        .expect(404)
+        .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message).to.equal('You cannot update this user');
@@ -223,6 +249,7 @@ describe('User api', () => {
         .send({
           firstname: 'Moyosore',
           lastname: 'Sosan',
+          password: 'new password',
         })
         .expect(200)
         .end((err, res) => {
@@ -238,7 +265,7 @@ describe('User api', () => {
     it('Should fail to delete a user by non-admin user', (done) => {
       request.delete(`/users/${regularUser.id}`)
         .set({ 'x-access-token': regularToken })
-        .expect(403)
+        .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message)
@@ -250,7 +277,7 @@ describe('User api', () => {
     it('Should fail when admin wants to delete self', (done) => {
       request.delete(`/users/${adminUser.id}`)
         .set({ 'x-access-token': adminToken })
-        .expect(403)
+        .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message)
@@ -261,7 +288,7 @@ describe('User api', () => {
 
     it('Should fail to delete a user if user is not authorized', (done) => {
       request.delete('/users/1')
-        .expect(404)
+        .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message).to.equal('Not Authorized');

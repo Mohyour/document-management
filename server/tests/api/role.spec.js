@@ -113,11 +113,13 @@ describe('Role api', () => {
     });
 
     describe('Get: (/roles/:id) - Get role', () => {
-      it('should get all roles when called', (done) => {
+      it('should get all roles with pagination', (done) => {
         request.get('/roles')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
             expect(res.status).to.equal(200);
+            expect(res.body.roles.length).to.be.greaterThan(0);
+            expect(typeof res.body.metadata).to.equal('object');
             done();
           });
       });
@@ -144,8 +146,8 @@ describe('Role api', () => {
         request.get('/roles')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
-            expect(res.body[0].title).to.equal('admin');
-            expect(res.body[1].title).to.equal('regular');
+            expect(res.body.roles[2].title).to.equal('admin');
+            expect(res.body.roles[3].title).to.equal('regular');
             done();
           });
       });

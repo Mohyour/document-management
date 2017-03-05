@@ -29,9 +29,20 @@ export default {
    * @returns {Object} Response Object
    */
   listDocs(req, res) {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
     return Document
-    .all()
-    .then(document => res.status(200).send(document));
+    .findAndCountAll({
+      limit: limit || null,
+      offset: offset || null,
+      order: '"createdAt" DESC'
+    })
+    .then((documents) => {
+      const metadata = limit && offset ? { count: documents.count,
+        pages: Math.ceil(documents.count / limit),
+        currentPage: Math.floor(offset / limit) + 1 } : null;
+      res.status(200).send({ documents: documents.rows, metadata });
+    });
   },
 
   /**
@@ -65,13 +76,13 @@ export default {
                 return res.status(200)
                   .send(foundDocument);
               }
-              return res.status(403)
+              return res.status(401)
                 .send({
                   message: 'You cannot view this document'
                 });
             });
         }
-        return res.status(403)
+        return res.status(401)
           .send({
             message: 'You cannot view this document'
           });
@@ -85,9 +96,21 @@ export default {
    * @returns {Object} Response Object
    */
   getRoleDoc(req, res) {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
     return Document
-    .findAll({ where: { access: req.query.access } })
-    .then(document => res.status(200).send(document));
+    .findAndCountAll({
+      where: { access: req.query.access },
+      limit: limit || null,
+      offset: offset || null,
+      order: '"createdAt" DESC'
+    })
+    .then((documents) => {
+      const metadata = limit && offset ? { count: documents.count,
+        pages: Math.ceil(documents.count / limit),
+        currentPage: Math.floor(offset / limit) + 1 } : null;
+      res.status(200).send({ documents: documents.rows, metadata });
+    });
   },
 
   /**
@@ -141,7 +164,7 @@ export default {
         });
       }
       if (document.UserId !== req.decoded.UserId) {
-        return res.status(403).send({
+        return res.status(401).send({
           message: 'You cannot update this document'
         });
       }
@@ -167,7 +190,7 @@ export default {
           });
         }
         if (document.UserId !== req.decoded.UserId) {
-          return res.status(403).send({
+          return res.status(401).send({
             message: 'You cannot delete this document'
           });
         }

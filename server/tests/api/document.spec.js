@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import chai from 'chai';
 import supertest from 'supertest';
 import model from '../../models';
@@ -29,9 +30,9 @@ describe('Documnet api', () => {
 
         request.post('/users')
           .send(adminUserParam)
-          .end((error, response) => {
-            adminUser = response.body.user;
-            adminToken = response.body.token;
+          .end((err, res) => {
+            adminUser = res.body.user;
+            adminToken = res.body.token;
             documentOne.UserId = adminUser.id;
             documentOne.access = 'private';
 
@@ -89,7 +90,7 @@ describe('Documnet api', () => {
       request.post('/documents')
         .set({ 'x-access-token': regularToken })
         .send(documentTwo)
-        .expect(201)
+        .expect(200)
         .end((err, res) => {
           document = res.body;
           expect(res.body.UserId).to.equal(regularUser.id);
@@ -107,7 +108,7 @@ describe('Documnet api', () => {
       request.post('/documents')
         .set({ 'x-access-token': adminToken })
         .send(nullTitleDoc)
-        .expect(500)
+        .expect(422)
         .end((err, res) => {
           expect(res.body.message).to.equal('notNull Violation: title cannot be null');
           done();
@@ -116,13 +117,13 @@ describe('Documnet api', () => {
   });
 
   describe('Get (/documents:id) - Get document', () => {
-    it('Should return all documents', (done) => {
-      request.get('/documents')
+    it('Should return all documents with pagination', (done) => {
+      request.get('/documents?limit=1&offset=1')
         .set({ 'x-access-token': adminToken })
         .expect(200).end((err, res) => {
-          expect(Array.isArray(res.body)).to.equal(true);
-          expect(res.body.length).to.be.greaterThan(0);
-          expect(res.body[0].title).to.equal(documentOne.title);
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.documents.length).to.be.greaterThan(0);
+          expect(res.body.metadata).not.be.null;
           done();
         });
     });
@@ -130,7 +131,8 @@ describe('Documnet api', () => {
     it('Should return a document with specified id to its owner', (done) => {
       request.get('/documents/4')
         .set({ 'x-access-token': regularToken })
-        .expect(200).end((err, res) => {
+        .expect(200)
+        .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.UserId).to.equal(regularUser.id);
           expect(res.body.title).to.equal(documentTwo.title);
@@ -151,7 +153,8 @@ describe('Documnet api', () => {
     it('Should fail to return a document to non-permited users', (done) => {
       request.get('/documents/1')
         .set({ 'x-access-token': regularToken })
-        .expect(200).end((err, res) => {
+        .expect(401)
+        .end((err, res) => {
           expect(typeof res.body).to.equal('object');
           expect(res.body.message).to.equal('You cannot view this document');
           done();
@@ -166,8 +169,8 @@ describe('Documnet api', () => {
         .set({ 'x-access-token': regularToken })
         .send(newContent)
         .expect(404)
-        .end((error, response) => {
-          expect(response.body.message).to.equal('Document Not Found');
+        .end((err, res) => {
+          expect(res.body.message).to.equal('Document Not Found');
           done();
         });
     });
@@ -184,9 +187,9 @@ describe('Documnet api', () => {
       request.put('/documents/1')
         .set({ 'x-access-token': regularToken })
         .send(newContent)
-        .end((error, response) => {
-          expect(response.status).to.equal(403);
-          expect(response.body.message).to.equal('You cannot update this document');
+        .end((err, res) => {
+          expect(res.status).to.equal(401);
+          expect(res.body.message).to.equal('You cannot update this document');
           done();
         });
     });
@@ -196,9 +199,9 @@ describe('Documnet api', () => {
       request.put('/documents/1')
         .set({ 'x-access-token': adminToken })
         .send(newContent)
-        .end((error, response) => {
-          expect(response.status).to.equal(200);
-          expect(response.body.content).to.equal(newContent.content);
+        .end((err, res) => {
+          expect(res.status).to.equal(200);
+          expect(res.body.content).to.equal(newContent.content);
           done();
         });
     });
@@ -215,9 +218,9 @@ describe('Documnet api', () => {
     it('should fail to delete a document if request is not made by the owner', (done) => {
       request.delete('/documents/1')
         .set({ 'x-access-token': regularToken })
-        .end((error, response) => {
-          expect(response.status).to.equal(403);
-          expect(response.body.message).to.equal('You cannot delete this document');
+        .end((err, res) => {
+          expect(res.status).to.equal(401);
+          expect(res.body.message).to.equal('You cannot delete this document');
           done();
         });
     });

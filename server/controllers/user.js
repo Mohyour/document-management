@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import model from '../models';
+
+dotenv.config();
 
 const User = model.User;
 const Doc = model.Document;
 
-const secret = process.env.SECRET_TOKEN || 'secret';
+const secret = process.env.SECRET_TOKEN;
 
 const removePassword = (user) => {
   const attributes = {
@@ -60,11 +63,11 @@ export default {
       offset: offset || null,
       order: '"createdAt" DESC'
     })
-    .then((user) => {
-      const metadata = limit && offset ? { count: user.count,
-        pages: Math.ceil(user.count / limit),
+    .then((users) => {
+      const metadata = limit && offset ? { count: users.count,
+        pages: Math.ceil(users.count / limit),
         currentPage: Math.floor(offset / limit) + 1 } : null;
-      res.status(200).send({ user: user.rows, metadata });
+      res.status(200).send({ users: users.rows, metadata });
     });
   },
 
@@ -101,11 +104,11 @@ export default {
       limit: limit || null,
       offset: offset || null,
       order: '"createdAt" DESC' })
-    .then((user) => {
-      const metadata = limit && offset ? { count: user.count,
-        pages: Math.ceil(user.count / limit),
+    .then((documents) => {
+      const metadata = limit && offset ? { count: documents.count,
+        pages: Math.ceil(documents.count / limit),
         currentPage: Math.floor(offset / limit) + 1 } : null;
-      res.status(200).send({ user: user.rows, metadata });
+      res.status(200).send({ documents: documents.rows, metadata });
     });
   },
 
@@ -117,7 +120,7 @@ export default {
    */
   updateUser(req, res) {
     if ((req.body.RoleId) && (req.decoded.RoleId !== 1)) {
-      return res.status(403).send({
+      return res.status(401).send({
         message: 'You are not permitted to assign this user to a role',
       });
     }
@@ -130,7 +133,7 @@ export default {
         });
       }
       if (user.id !== req.decoded.UserId) {
-        return res.status(403).send({
+        return res.status(401).send({
           message: 'You cannot update this user',
         });
       }
@@ -151,12 +154,12 @@ export default {
       .findById(req.params.id)
       .then(user => {
         if (!user) {
-          return res.status(400).send({
+          return res.status(404).send({
             message: 'User Not Found'
           });
         }
         if (user.id === req.decoded.UserId) {
-          return res.status(403).send({
+          return res.status(401).send({
             message: 'You cannot delete yourself'
           });
         }

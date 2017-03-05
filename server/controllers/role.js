@@ -28,9 +28,20 @@ export default {
    * @returns {object} Response Object
    */
   listRoles(req, res) {
+    const limit = req.query.limit;
+    const offset = req.query.offset;
     return Role
-    .all()
-    .then(role => res.status(200).send(role));
+    .findAndCountAll({
+      limit: limit || null,
+      offset: offset || null,
+      order: '"createdAt" DESC'
+    })
+    .then((roles) => {
+      const metadata = limit && offset ? { count: roles.count,
+        pages: Math.ceil(roles.count / limit),
+        currentPage: Math.floor(offset / limit) + 1 } : null;
+      res.status(200).send({ roles: roles.rows, metadata });
+    });
   },
 
   /**
@@ -86,7 +97,7 @@ export default {
       .findById(req.params.id)
       .then(role => {
         if (!role) {
-          return res.status(400).send({
+          return res.status(404).send({
             message: 'Role Not Found',
           });
         }
