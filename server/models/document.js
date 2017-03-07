@@ -2,8 +2,7 @@ export default (sequelize, DataTypes) => {
   const Document = sequelize.define('Document', {
     title: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
+      allowNull: false
     },
     content: {
       type: DataTypes.TEXT

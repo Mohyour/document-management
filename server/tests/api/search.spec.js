@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import chai from 'chai';
 import supertest from 'supertest';
 import model from '../../models';
@@ -33,6 +34,7 @@ describe('Search api (documents/)', () => {
             adminUser = response.body.user;
             adminToken = response.body.token;
             documentOne.UserId = adminUser.id;
+            documentOne.title = 'test title';
 
             request.post('/users')
               .send(regularUserParam)
@@ -45,7 +47,6 @@ describe('Search api (documents/)', () => {
                 .send(documentOne)
                 .end((err, res) => {
                   document = res.body;
-
                   request.post('/documents')
                   .set({ 'x-access-token': adminToken })
                   .send(documentTwo)
@@ -62,26 +63,47 @@ describe('Search api (documents/)', () => {
   after(() => model.sequelize.sync({ force: true }));
 
   describe('Get (/document)', () => {
-    it('Should search a document by user', (done) => {
-      request.get('/documents/user?UserId=1')
+    it('Should search a document for a string', (done) => {
+      request.get('/documents/search?query=test&limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body[0].UserId).to.equal(1);
-          expect(res.body.length).to.equal(2);
+          expect(res.body.documents).to.exist;
+          expect(res.body.documents[0].title).to.equal('test title');
+          expect(res.body.metadata).to.not.be.null;
+          done();
+        });
+    });
+
+    it('Should return error message for invalid input', (done) => {
+      request.get('/documents/search?query=test&limit=1&offset=hello')
+        .set({ 'x-access-token': adminToken })
+        .expect(200).end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
 
     it('Should search a document by role that can access it', (done) => {
-      request.get('/documents/role?access=public')
+      request.get('/documents/role?access=public&limit=1&offset=0')
         .set({ 'x-access-token': adminToken })
         .expect(201)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body[0].access).to.equal('public');
-          expect(res.body.length).to.equal(1);
+          expect(res.body.documents[0].access).to.equal('public');
+          expect(res.body.metadata).to.not.be.null;
+          done();
+        });
+    });
+
+    it('Should return error message for invalid input', (done) => {
+      request.get('/documents/role?access=public&limit=1&offset=hello')
+        .set({ 'x-access-token': adminToken })
+        .expect(200).end((err, res) => {
+          expect(typeof res.body).to.equal('object');
+          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
           done();
         });
     });

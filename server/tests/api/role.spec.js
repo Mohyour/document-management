@@ -112,12 +112,14 @@ describe('Role api', () => {
         });
     });
 
-    describe('Get: (/roles/:id) - Get role', () => {
-      it('should get all roles when called', (done) => {
-        request.get('/roles')
+    describe('Get: (/roles/) - Get role', () => {
+      it('should get all roles with pagination', (done) => {
+        request.get('/roles?limit=1&offset=1')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
             expect(res.status).to.equal(200);
+            expect(res.body.roles.length).to.be.greaterThan(0);
+            expect(typeof res.body.metadata).to.equal('object');
             done();
           });
       });
@@ -127,6 +129,17 @@ describe('Role api', () => {
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
             expect(res.status).to.equal(404);
+            done();
+          });
+      });
+
+      it('Should return error message for invalid input', (done) => {
+        request.get('/roles/hello')
+          .set({ 'x-access-token': adminToken })
+          .expect(400)
+          .end((err, res) => {
+            expect(typeof res.body).to.equal('object');
+            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
             done();
           });
       });
@@ -144,14 +157,25 @@ describe('Role api', () => {
         request.get('/roles')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
-            expect(res.body[0].title).to.equal('admin');
-            expect(res.body[1].title).to.equal('regular');
+            expect(res.body.roles[2].title).to.equal('admin');
+            expect(res.body.roles[3].title).to.equal('regular');
             done();
           });
       });
     });
 
     describe('Put (/roles/:id) - Update role', () => {
+      it('Should return error message for invalid input', (done) => {
+        request.get('/roles/hello')
+          .set({ 'x-access-token': adminToken })
+          .expect(400)
+          .end((err, res) => {
+            expect(typeof res.body).to.equal('object');
+            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+            done();
+          });
+      });
+
       it('Should update a role', (done) => {
         request.put('/roles/2')
           .set({ 'x-access-token': adminToken })
@@ -194,6 +218,17 @@ describe('Role api', () => {
     });
 
     describe('Delete (/roles/:id) - Delete role', () => {
+      it('Should return error message for invalid input', (done) => {
+        request.get('/roles/hello')
+          .set({ 'x-access-token': adminToken })
+          .expect(400)
+          .end((err, res) => {
+            expect(typeof res.body).to.equal('object');
+            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+            done();
+          });
+      });
+
       it('Should fail to delete a role by a non admin', (done) => {
         request.delete('/roles/2')
           .set({ 'x-access-token': regularToken })

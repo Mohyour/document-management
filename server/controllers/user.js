@@ -1,10 +1,13 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 import model from '../models';
+
+dotenv.config();
 
 const User = model.User;
 const Doc = model.Document;
 
-const secret = process.env.SECRET_TOKEN || 'secret';
+const secret = process.env.SECRET_TOKEN;
 
 const removePassword = (user) => {
   const attributes = {
@@ -27,6 +30,11 @@ export default {
    * @returns {object} Response Object
    */
   createUser(req, res) {
+    if (req.body.RoleId === '1') {
+      return res.status(401).send({
+        message: 'You cannot register as an admin user'
+      });
+    }
     return User
       .create(req.body)
       .then(user => {
@@ -56,15 +64,21 @@ export default {
     return User
     .findAndCountAll({
       attributes: ['id', 'username', 'firstname', 'lastname', 'email', 'RoleId'],
-      limit: limit || null,
-      offset: offset || null,
+      limit,
+      offset,
       order: '"createdAt" DESC'
     })
-    .then((user) => {
-      const metadata = limit && offset ? { count: user.count,
-        pages: Math.ceil(user.count / limit),
-        currentPage: Math.floor(offset / limit) + 1 } : null;
-      res.status(200).send({ user: user.rows, metadata });
+    .then((users) => {
+      const metadata = limit && offset ? { count: users.count,
+        pages: Math.ceil(users.count / limit),
+        currentPage: Math.floor(offset / limit) + 1,
+        pageSize: users.rows.length } : null;
+      res.status(200).send({ users: users.rows, metadata });
+    })
+    .catch((error) => {
+      return res.status(400).send({
+        message: error.message
+      });
     });
   },
 
@@ -83,7 +97,13 @@ export default {
           message: 'User Not Found'
         });
       }
+      user = removePassword(user);
       res.status(200).send(user);
+    })
+    .catch((error) => {
+      return res.status(400).send({
+        message: error.message
+      });
     });
   },
 
@@ -98,14 +118,20 @@ export default {
     const offset = req.query.offset;
     return Doc
     .findAndCountAll({ where: { UserId: req.params.id },
-      limit: limit || null,
-      offset: offset || null,
+      limit,
+      offset,
       order: '"createdAt" DESC' })
-    .then((user) => {
-      const metadata = limit && offset ? { count: user.count,
-        pages: Math.ceil(user.count / limit),
-        currentPage: Math.floor(offset / limit) + 1 } : null;
-      res.status(200).send({ user: user.rows, metadata });
+    .then((documents) => {
+      const metadata = limit && offset ? { count: documents.count,
+        pages: Math.ceil(documents.count / limit),
+        currentPage: Math.floor(offset / limit) + 1,
+        pageSize: documents.rows.length } : null;
+      res.status(200).send({ documents: documents.rows, metadata });
+    })
+    .catch((error) => {
+      return res.status(400).send({
+        message: error.message
+      });
     });
   },
 
@@ -117,7 +143,7 @@ export default {
    */
   updateUser(req, res) {
     if ((req.body.RoleId) && (req.decoded.RoleId !== 1)) {
-      return res.status(403).send({
+      return res.status(401).send({
         message: 'You are not permitted to assign this user to a role',
       });
     }
@@ -130,13 +156,18 @@ export default {
         });
       }
       if (user.id !== req.decoded.UserId) {
-        return res.status(403).send({
+        return res.status(401).send({
           message: 'You cannot update this user',
         });
       }
       return user
         .update(req.body)
-        .then(() => res.status(200).send(user));
+        .then(() => res.status(200).send(removePassword(user)));
+    })
+    .catch((error) => {
+      return res.status(400).send({
+        message: error.message
+      });
     });
   },
 
@@ -151,12 +182,12 @@ export default {
       .findById(req.params.id)
       .then(user => {
         if (!user) {
-          return res.status(400).send({
+          return res.status(404).send({
             message: 'User Not Found'
           });
         }
         if (user.id === req.decoded.UserId) {
-          return res.status(403).send({
+          return res.status(401).send({
             message: 'You cannot delete yourself'
           });
         }
@@ -165,6 +196,11 @@ export default {
           .then(() => res.status(200).send({
             message: 'User Deleted'
           }));
+      })
+      .catch((error) => {
+        return res.status(400).send({
+          message: error.message
+        });
       });
   },
 
