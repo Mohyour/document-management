@@ -33,8 +33,8 @@ export default {
    * @returns {object} Response Object
    */
   listRoles(req, res) {
-    const limit = req.query.limit;
-    const offset = req.query.offset;
+    const limit = req.query.limit || '10';
+    const offset = req.query.offset || '0';
     return Role
     .findAndCountAll({
       limit,

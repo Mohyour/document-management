@@ -59,8 +59,8 @@ export default {
    * @returns {object} Response Object
    */
   listUsers(req, res) {
-    const limit = req.query.limit;
-    const offset = req.query.offset;
+    const limit = req.query.limit || '10';
+    const offset = req.query.offset || '0';
     return User
     .findAndCountAll({
       attributes: ['id', 'username', 'firstname', 'lastname', 'email', 'RoleId'],
@@ -114,8 +114,8 @@ export default {
    * @returns {object} Response Object
    */
   getUserDoc(req, res) {
-    const limit = req.query.limit;
-    const offset = req.query.offset;
+    const limit = req.query.limit || '10';
+    const offset = req.query.offset || '0';
     return Doc
     .findAndCountAll({ where: { UserId: req.params.id },
       limit,

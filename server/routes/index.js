@@ -35,7 +35,7 @@ export default (app) => {
 
   app.route('/documents')
     .post(auth.verifyToken, docController.createDoc)
-    .get(auth.verifyToken, docController.listDocs);
+    .get(auth.verifyToken, auth.adminAccess, docController.listDocs);
 
   app.get('/documents/role', auth.verifyToken, auth.adminAccess, docController.getRoleDoc);
   app.get('/documents/search', auth.verifyToken, docController.searchDoc);

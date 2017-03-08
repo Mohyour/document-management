@@ -29,8 +29,8 @@ export default {
    * @returns {Object} Response Object
    */
   listDocs(req, res) {
-    const limit = req.query.limit;
-    const offset = req.query.offset;
+    const limit = req.query.limit || '10';
+    const offset = req.query.offset || '0';
     return Document
     .findAndCountAll({
       limit,

@@ -10,7 +10,7 @@ const verifyToken = (req, res, next) => {
   const token = req.headers.authorization || req.headers['x-access-token'];
   if (!token) {
     return res.status(401)
-      .json({ message: 'Not Authorized' });
+      .send({ message: 'Not Authorized' });
   }
 
   jwt.verify(token, secret, (error, decoded) => {
@@ -32,7 +32,7 @@ const adminAccess = (req, res, next) => {
         next();
       } else {
         return res.status(403)
-          .json({ message: 'Only an admin is authorized for this request' });
+          .send({ message: 'Only an admin is authorized for this request' });
       }
     });
 };
