@@ -1,5 +1,9 @@
 [![Build Status](https://travis-ci.org/andela-msosan/document-management.svg?branch=develop)](https://travis-ci.org/andela-msosan/document-management)
 [![Coverage Status](https://coveralls.io/repos/github/andela-msosan/document-management/badge.svg?branch=develop)](https://coveralls.io/github/andela-msosan/document-management?branch=develop)
+[![Code Climate](https://lima.codeclimate.com/github/andela-msosan/document-management/badges/gpa.svg)](https://lima.codeclimate.com/github/andela-msosan/document-management)
+[![Issue Count](https://lima.codeclimate.com/github/andela-msosan/document-management/badges/issue_count.svg)](https://lima.codeclimate.com/github/andela-msosan/document-management)
+
+
 # Document Management System
 
 Application is hosted [here](https://doc-man-msosan.herokuapp.com)
@@ -43,7 +47,7 @@ The Document Management System API has the following features:
 **Search**
 
 * Users can search public documents for a specified search term.
-* An admin user can search for documents based on their access roles
+* An admin user can search for documents based on their access levels
 
 ## Installation
 
