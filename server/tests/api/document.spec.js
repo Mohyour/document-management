@@ -16,8 +16,13 @@ const documentOne = helper.testDocument;
 const documentTwo = helper.testDocument2;
 
 describe('Documnet api', () => {
-  let document, adminRole, regularRole, adminUser, regularUser,
-    adminToken, regularToken;
+  let document;
+  let adminRole;
+  let regularRole;
+  let adminUser;
+  let regularUser;
+  let adminToken;
+  let regularToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -33,7 +38,7 @@ describe('Documnet api', () => {
           .end((err, res) => {
             adminUser = res.body.user;
             adminToken = res.body.token;
-            documentOne.UserId = adminUser.id;
+            documentOne.ownerId = adminUser.id;
             documentOne.access = 'private';
 
             request.post('/users')
@@ -41,7 +46,7 @@ describe('Documnet api', () => {
               .end((err, res) => {
                 regularUser = res.body.user;
                 regularToken = res.body.token;
-                documentTwo.UserId = regularUser.id;
+                documentTwo.ownerId = regularUser.id;
                 documentTwo.access = 'public';
                 done();
               });
@@ -78,7 +83,7 @@ describe('Documnet api', () => {
         .expect(200)
         .end((err, res) => {
           document = res.body;
-          expect(res.body.UserId).to.equal(regularUser.id);
+          expect(res.body.ownerId).to.equal(regularUser.id);
           done();
         });
     });
@@ -88,14 +93,16 @@ describe('Documnet api', () => {
       done();
     });
 
-    it('Should ensure that document cannot be created if title is lacking', (done) => {
+    it('Should ensure that document cannot be created if title is lacking',
+    (done) => {
       const nullTitleDoc = { title: null, content: 'content' };
       request.post('/documents')
         .set({ 'x-access-token': adminToken })
         .send(nullTitleDoc)
         .expect(422)
         .end((err, res) => {
-          expect(res.body.message).to.equal('notNull Violation: title cannot be null');
+          expect(res.body.message[0]).to
+          .equal('title cannot be null');
           done();
         });
     });
@@ -118,7 +125,8 @@ describe('Documnet api', () => {
         .set({ 'x-access-token': adminToken })
         .expect(400).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "asd"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "asd"');
           done();
         });
     });
@@ -129,7 +137,7 @@ describe('Documnet api', () => {
         .expect(200)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.UserId).to.equal(regularUser.id);
+          expect(res.body.ownerId).to.equal(regularUser.id);
           expect(res.body.title).to.equal(documentTwo.title);
           done();
         });
@@ -163,12 +171,13 @@ describe('Documnet api', () => {
         .set({ 'x-access-token': adminToken })
         .expect(400).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
 
-    it('should not perform edit if invalid id is provided', (done) => {
+    it('Should not perform edit if invalid id is provided', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/123')
         .set({ 'x-access-token': regularToken })
@@ -180,14 +189,15 @@ describe('Documnet api', () => {
         });
     });
 
-    it('should not perform edit if User is not authorized', (done) => {
+    it('Should not perform edit if User is not authorized', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/2')
         .send(newContent)
         .expect(401, done);
     });
 
-    it('should fail to edit document if request is not made by the owner', (done) => {
+    it('Should fail to edit document if request is not made by the owner',
+    (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/1')
         .set({ 'x-access-token': regularToken })
@@ -199,7 +209,7 @@ describe('Documnet api', () => {
         });
     });
 
-    it('should edit document if valid id is provided', (done) => {
+    it('Should edit document if valid id is provided', (done) => {
       const newContent = { content: 'replace previous document' };
       request.put('/documents/1')
         .set({ 'x-access-token': adminToken })
@@ -218,19 +228,21 @@ describe('Documnet api', () => {
         .set({ 'x-access-token': adminToken })
         .expect(400).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
 
-    it('should not delete if user is not authorized', (done) => {
+    it('Should not delete if user is not authorized', (done) => {
       const newContent = { content: 'replace previous document' };
       request.delete('/documents/2')
         .send(newContent)
         .expect(401, done);
     });
 
-    it('should fail to delete a document if request is not made by the owner', (done) => {
+    it('Should fail to delete a document if request is not made by the owner',
+    (done) => {
       request.delete('/documents/1')
         .set({ 'x-access-token': regularToken })
         .end((err, res) => {

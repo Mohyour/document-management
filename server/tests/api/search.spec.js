@@ -16,8 +16,12 @@ const documentOne = helper.testDocument;
 const documentTwo = helper.testDocument2;
 
 describe('Search api (documents/)', () => {
-  let document, adminRole, regularRole, adminUser, // eslint-disable-line no-unused-vars
-    regularUser, adminToken;
+  let document; // eslint-disable-line no-unused-vars
+  let adminRole;
+  let regularRole;
+  let adminUser; // eslint-disable-line no-unused-vars
+  let regularUser;
+  let adminToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -33,14 +37,14 @@ describe('Search api (documents/)', () => {
           .end((error, response) => {
             adminUser = response.body.user;
             adminToken = response.body.token;
-            documentOne.UserId = adminUser.id;
+            documentOne.ownerId = adminUser.id;
             documentOne.title = 'test title';
 
             request.post('/users')
               .send(regularUserParam)
               .end((err, res) => {
                 regularUser = res.body.user;
-                documentTwo.UserId = regularUser.id;
+                documentTwo.ownerId = regularUser.id;
 
                 request.post('/documents')
                 .set({ 'x-access-token': adminToken })
@@ -81,7 +85,8 @@ describe('Search api (documents/)', () => {
         .set({ 'x-access-token': adminToken })
         .expect(200).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
@@ -103,7 +108,8 @@ describe('Search api (documents/)', () => {
         .set({ 'x-access-token': adminToken })
         .expect(200).end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });

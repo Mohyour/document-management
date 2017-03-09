@@ -31,7 +31,7 @@ export default (sequelize, DataTypes) => {
       associate: (models) => {
         // model association
         User.hasMany(models.Document, {
-          foreignkey: { allowNull: true }
+          foreignKey: 'ownerId'
         });
         User.belongsTo(models.Role, {
           foreignkey: { allowNull: true },

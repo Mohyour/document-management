@@ -53,9 +53,7 @@ describe('User Model', () => {
 
     it('should be able to update a user', (done) => {
       model.User.findById(user.id)
-        .then((foundUser) => {
-          return foundUser.update({ username: 'moyosore' });
-        })
+        .then(foundUser => foundUser.update({ username: 'moyosore' }))
         .then((updatedUser) => {
           expect(updatedUser.username).to.equal('moyosore');
           done();
@@ -118,12 +116,10 @@ describe('User Model', () => {
     });
 
     describe('Password Validation', () => {
-      it('should be valid if compared with hashed password', () => {
-        return user.save()
+      it('should be valid if compared with hashed password', () => user.save()
           .then((createdUser) => {
             expect(createdUser.validPassword(userParams.password)).to.be.true;
-          });
-      });
+          }));
     });
   });
 });

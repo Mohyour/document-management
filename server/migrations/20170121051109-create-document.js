@@ -15,14 +15,22 @@ module.exports = {
       content: {
         type: Sequelize.TEXT
       },
-      UserId: {
+      ownerId: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        onDelete: 'CASCADE',
         references: {
-          model: 'Users',
-          key: 'id'
-        }
+          model: 'Documents',
+          key: 'id',
+          as: 'ownerId'
+        },
+      // UserId: {
+      //   type: Sequelize.INTEGER,
+      //   allowNull: false,
+      //   onDelete: 'CASCADE',
+      //   references: {
+      //     model: 'Users',
+      //     key: 'id'
+      //   }
       },
       access: {
         type: Sequelize.STRING,

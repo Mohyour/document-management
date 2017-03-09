@@ -1,5 +1,5 @@
 import controller from '../controllers';
-import * as auth from './auth';
+import * as auth from '../middleware/Auth';
 
 const userController = controller.user;
 const docController = controller.document;
@@ -28,7 +28,8 @@ export default (app) => {
     .put(auth.verifyToken, userController.updateUser)
     .delete(auth.verifyToken, auth.adminAccess, userController.deleteUser);
 
-  app.get('/users/:id/documents', auth.verifyToken, auth.adminAccess, userController.getUserDoc);
+  app.get('/users/:id/documents', auth.verifyToken, auth.adminAccess,
+          userController.getUserDoc);
 
   app.post('/login', userController.login);
   app.post('/logout', userController.logout);
@@ -37,7 +38,8 @@ export default (app) => {
     .post(auth.verifyToken, docController.createDoc)
     .get(auth.verifyToken, auth.adminAccess, docController.listDocs);
 
-  app.get('/documents/role', auth.verifyToken, auth.adminAccess, docController.getRoleDoc);
+  app.get('/documents/role', auth.verifyToken, auth.adminAccess,
+          docController.getRoleDoc);
   app.get('/documents/search', auth.verifyToken, docController.searchDoc);
 
   app.route('/documents/:id')

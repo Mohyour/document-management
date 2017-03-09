@@ -4,7 +4,7 @@ import model from '../models';
 
 dotenv.config();
 
-const secret = process.env.SECRET_TOKEN;
+const secret = process.env.SECRET_TOKEN || 'secret';
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization || req.headers['x-access-token'];

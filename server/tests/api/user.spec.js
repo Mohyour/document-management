@@ -18,8 +18,13 @@ const documentOneParam = helper.testDocument;
 
 
 describe('User api', () => {
-  let adminRole, regularRole, adminUser, regularUser,
-    adminToken, testUser, regularToken;
+  let adminRole;
+  let regularRole;
+  let adminUser;
+  let regularUser;
+  let adminToken;
+  let testUser;
+  let regularToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -84,7 +89,7 @@ describe('User api', () => {
         .send(adminUserParam)
         .expect(400)
         .end((err, res) => {
-          expect(res.body.message).to.equal('Validation error');
+          expect(res.body.message[0]).to.equal('username must be unique');
           done();
         });
     });
@@ -114,7 +119,8 @@ describe('User api', () => {
         });
     });
 
-    it('Should ensure user cannot be created if one of email or password is lacking.', (done) => {
+    it(`Should ensure user cannot be created if one of email or
+     password is lacking.`, (done) => {
       testUserParam.email = null;
       testUserParam.password = null;
       request.post('/users')
@@ -122,7 +128,8 @@ describe('User api', () => {
         .send(testUserParam)
         .expect(422)
         .end((err, res) => {
-          expect(res.body.message).to.equal('notNull Violation: email cannot be null,\nnotNull Violation: password cannot be null');
+          expect(res.body.message[0]).to.equal('email cannot be null');
+          expect(res.body.message[1]).to.equal('password cannot be null');
           done();
         });
     });
@@ -135,14 +142,15 @@ describe('User api', () => {
         .send(testUserParam)
         .expect(401)
         .end((err, res) => {
-          expect(res.body.message).to.equal('You cannot register as an admin user');
+          expect(res.body.message).to
+          .equal('You cannot register as an admin user');
           done();
         });
     });
   });
 
   describe('Get: (/users/) - Get a user', () => {
-    it('should fail to get request if token is invalid', (done) => {
+    it('Should fail to get request if token is invalid', (done) => {
       request.get('/users/')
         .set({ 'x-access-token': 'invalidXYZABCtoken' })
         .expect(406)
@@ -158,12 +166,13 @@ describe('User api', () => {
         .expect(400)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
 
-    it('should not return a user if id is invalid', (done) => {
+    it('Should not return a user if id is invalid', (done) => {
       request.get('/users/123')
         .set({ 'x-access-token': adminToken })
         .expect(404)
@@ -188,7 +197,7 @@ describe('User api', () => {
         });
     });
 
-    it('should return user with a correct id', (done) => {
+    it('Should return user with a correct id', (done) => {
       request.get(`/users/${regularUser.id}`)
         .set({ 'x-access-token': adminToken })
         .end((err, res) => {
@@ -198,7 +207,8 @@ describe('User api', () => {
         });
     });
 
-    it('should return the documents belonging to a user with pagination', (done) => {
+    it('Should return the documents belonging to a user with pagination',
+    (done) => {
       request.post('/documents')
       .set({ 'x-access-token': adminToken })
       .send(documentOneParam)
@@ -222,7 +232,8 @@ describe('User api', () => {
         .expect(400)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });
@@ -248,7 +259,8 @@ describe('User api', () => {
         });
     });
 
-    it('Should fail if a regular user is assigned an admin role by non-admin ', (done) => {
+    it('Should fail if a regular user is assigned an admin role by non-admin ',
+    (done) => {
       request.put(`/users/${regularUser.id}`)
         .set({ 'x-access-token': regularToken })
         .send({
@@ -258,12 +270,14 @@ describe('User api', () => {
         .expect(401)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('You are not permitted to assign this user to a role');
+          expect(res.body.message).to
+          .equal('You are not permitted to assign this user to a role');
           done();
         });
     });
 
-    it('Should fail to update a user if request is not made by the user', (done) => {
+    it('Should fail to update a user if request is not made by the user',
+    (done) => {
       request.put('/users/1')
         .set({ 'x-access-token': regularToken })
         .send({
@@ -303,7 +317,8 @@ describe('User api', () => {
         .expect(400)
         .end((err, res) => {
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+          expect(res.body.message).to
+          .equal('invalid input syntax for integer: "hello"');
           done();
         });
     });

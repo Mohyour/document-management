@@ -13,7 +13,9 @@ const adminUser = helper.adminUser;
 const regularUser = helper.regularUser;
 
 
-let adminToken, regularToken, role;
+let adminToken;
+let regularToken;
+let role;
 describe('Role api', () => {
   before((done) => {
     model.Role.bulkCreate([adminRole, regularRole], { returning: true })
@@ -41,7 +43,7 @@ describe('Role api', () => {
   after(() => model.sequelize.sync({ force: true }));
 
   describe('Post (/roles)', () => {
-    it('should create a role when required field is valid', (done) => {
+    it('Should create a role when required field is valid', (done) => {
       const newRole = { title: 'super admin' };
       request.post('/roles')
       .set({ 'x-access-token': adminToken })
@@ -53,7 +55,8 @@ describe('Role api', () => {
       });
     });
 
-    it('Ensures that role cannot be created if creator is not authenticated', (done) => {
+    it('Ensures that role cannot be created if creator is not authenticated',
+    (done) => {
       request.post('/roles')
         .send(regularRole)
         .end((err, res) => {
@@ -82,7 +85,7 @@ describe('Role api', () => {
         .send(regularRole)
         .end((err, res) => {
           if (err) return done(err);
-          expect(res.body.message).to.equal('Validation error');
+          expect(res.body.message[0]).to.equal('title must be unique');
           done();
         });
     });
@@ -95,7 +98,8 @@ describe('Role api', () => {
         .end((err, res) => {
           if (err) return done(err);
           expect(typeof res.body).to.equal('object');
-          expect(res.body.message).to.equal('Only an admin is authorized for this request');
+          expect(res.body.message).to
+          .equal('Only an admin is authorized for this request');
           done();
         });
     });
@@ -107,13 +111,14 @@ describe('Role api', () => {
         .expect(400)
         .end((err, res) => {
           if (err) return done(err);
-          expect(res.body.message).to.equal('notNull Violation: title cannot be null');
+          expect(res.body.message[0]).to
+          .equal('title cannot be null');
           done();
         });
     });
 
     describe('Get: (/roles/) - Get role', () => {
-      it('should get all roles with pagination', (done) => {
+      it('Should get all roles with pagination', (done) => {
         request.get('/roles?limit=1&offset=1')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
@@ -124,7 +129,7 @@ describe('Role api', () => {
           });
       });
 
-      it('should not return the role when supplied invalid id', (done) => {
+      it('Should not return the role when supplied invalid id', (done) => {
         request.get('/roles/123')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
@@ -139,12 +144,13 @@ describe('Role api', () => {
           .expect(400)
           .end((err, res) => {
             expect(typeof res.body).to.equal('object');
-            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+            expect(res.body.message).to
+            .equal('invalid input syntax for integer: "hello"');
             done();
           });
       });
 
-      it('should return the role when valid id is provided', (done) => {
+      it('Should return the role when valid id is provided', (done) => {
         request.get(`/roles/${role.id}`)
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
@@ -153,7 +159,8 @@ describe('Role api', () => {
           });
       });
 
-      it('should validate that atleast regular and admin role exist', (done) => {
+      it('Should validate that atleast regular and admin role exist',
+      (done) => {
         request.get('/roles')
           .set({ 'x-access-token': adminToken })
           .end((err, res) => {
@@ -171,7 +178,8 @@ describe('Role api', () => {
           .expect(400)
           .end((err, res) => {
             expect(typeof res.body).to.equal('object');
-            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+            expect(res.body.message).to
+            .equal('invalid input syntax for integer: "hello"');
             done();
           });
       });
@@ -224,7 +232,8 @@ describe('Role api', () => {
           .expect(400)
           .end((err, res) => {
             expect(typeof res.body).to.equal('object');
-            expect(res.body.message).to.equal('invalid input syntax for integer: "hello"');
+            expect(res.body.message).to
+            .equal('invalid input syntax for integer: "hello"');
             done();
           });
       });

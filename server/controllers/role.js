@@ -2,6 +2,8 @@ import model from '../models';
 
 const Role = model.Role;
 
+const errorHandler = errors => errors.map(error => error.message);
+
 export default {
 
   /**
@@ -14,16 +16,9 @@ export default {
     return Role
       .create(req.body)
       .then(role => res.status(201).send(role))
-      .catch((error) => {
-        res.status(400).send({
-          message: error.message,
-        });
-      })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: errorHandler(error.errors)
+      }));
   },
 
   /**
@@ -42,17 +37,15 @@ export default {
       order: '"createdAt" DESC'
     })
     .then((roles) => {
-      const metadata = limit && offset ? { count: roles.count,
+      const metadata = limit && offset ? { totalCount: roles.count,
         pages: Math.ceil(roles.count / limit),
         currentPage: Math.floor(offset / limit) + 1,
         pageSize: roles.rows.length } : null;
       res.status(200).send({ roles: roles.rows, metadata });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -64,7 +57,7 @@ export default {
   getRole(req, res) {
     return Role
     .findById(req.params.id)
-    .then(role => {
+    .then((role) => {
       if (!role) {
         return res.status(404).send({
           message: 'Role Not Found'
@@ -72,11 +65,9 @@ export default {
       }
       res.status(200).send(role);
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -88,7 +79,7 @@ export default {
   updateRole(req, res) {
     return Role
     .findById(req.params.id, {})
-    .then(role => {
+    .then((role) => {
       if (!role) {
         return res.status(404).send({
           message: 'Role Not Found',
@@ -100,11 +91,9 @@ export default {
           res.status(200).send(role);
         });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -116,7 +105,7 @@ export default {
   deleteRole(req, res) {
     return Role
       .findById(req.params.id)
-      .then(role => {
+      .then((role) => {
         if (!role) {
           return res.status(404).send({
             message: 'Role Not Found',
@@ -128,10 +117,8 @@ export default {
             message: 'Role Deleted'
           }));
       })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: error.message
+      }));
   },
 };

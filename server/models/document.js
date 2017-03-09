@@ -7,6 +7,9 @@ export default (sequelize, DataTypes) => {
     content: {
       type: DataTypes.TEXT
     },
+    ownerId: {
+      type: DataTypes.INTEGER
+    },
     access: {
       type: DataTypes.STRING,
       defaultValue: 'public',
@@ -20,7 +23,7 @@ export default (sequelize, DataTypes) => {
       associate(models) {
         // model association
         Document.belongsTo(models.User, {
-          foreignkey: { allowNull: true }
+          foreignKey: 'ownerId'
         });
       }
     }

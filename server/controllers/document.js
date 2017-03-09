@@ -2,6 +2,8 @@ import model from '../models/index';
 
 const Document = model.Document;
 
+const errorHandler = errors => errors.map(error => error.message);
+
 export default {
 
   /**
@@ -11,15 +13,13 @@ export default {
    * @returns {object} Response Object
    */
   createDoc(req, res) {
-    req.body.UserId = req.decoded.UserId;
+    req.body.ownerId = req.decoded.UserId;
     return Document
       .create(req.body)
       .then(document => res.status(201).send(document))
-      .catch((error) => {
-        res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: errorHandler(error.errors)
+      }));
   },
 
   /**
@@ -38,17 +38,15 @@ export default {
       order: '"createdAt" DESC'
     })
     .then((documents) => {
-      const metadata = limit && offset ? { count: documents.count,
+      const metadata = limit && offset ? { totalCount: documents.count,
         pages: Math.ceil(documents.count / limit),
         currentPage: Math.floor(offset / limit) + 1,
         pageSize: documents.rows.length } : null;
       res.status(200).send({ documents: documents.rows, metadata, });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -71,12 +69,12 @@ export default {
             .send(foundDocument);
         }
         if ((foundDocument.access === 'private') &&
-          (foundDocument.UserId === req.decoded.UserId)) {
+          (foundDocument.ownerId === req.decoded.UserId)) {
           return res.status(200)
             .send(foundDocument);
         }
         if (foundDocument.access === 'role') {
-          return model.User.findById(foundDocument.UserId)
+          return model.User.findById(foundDocument.ownerId)
             .then((documentOwner) => {
               if (documentOwner.RoleId === req.decoded.RoleId) {
                 return res.status(200)
@@ -93,11 +91,9 @@ export default {
             message: 'You cannot view this document'
           });
       })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: error.message
+      }));
   },
 
   /**
@@ -117,17 +113,15 @@ export default {
       order: '"createdAt" DESC'
     })
     .then((documents) => {
-      const metadata = limit && offset ? { count: documents.count,
+      const metadata = limit && offset ? { totalCount: documents.count,
         pages: Math.ceil(documents.count / limit),
         currentPage: Math.floor(offset / limit) + 1,
         pageSize: documents.rows.length } : null;
       res.status(200).send({ documents: documents.rows, metadata });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -137,12 +131,12 @@ export default {
    * @returns {Object} Response Object
    */
   searchDoc(req, res) {
-    const queryString = req.query.query;
+    const userQuery = req.query.query;
     const query = {
       where: {
         $and: [{ $or: [
           { access: 'public' },
-          { UserId: req.decoded.UserId }
+          { ownerId: req.decoded.UserId }
         ] }],
       },
       limit: req.query.limit,
@@ -150,25 +144,24 @@ export default {
       order: '"createdAt" DESC'
     };
 
-    if (queryString) {
+    if (userQuery) {
       query.where.$and.push({ $or: [
-        { title: { $like: `%${queryString}%` } },
-        { content: { $like: `%${queryString}%` } }
+        { title: { $like: `%${userQuery}%` } },
+        { content: { $like: `%${userQuery}%` } }
       ] });
     }
     Document.findAndCountAll(query)
       .then((documents) => {
-        const metadata = query.limit && query.offset ? { count: documents.count,
+        const metadata = query.limit && query.offset
+        ? { totalCount: documents.count,
           pages: Math.ceil(documents.count / query.limit),
           currentPage: Math.floor(query.offset / query.limit) + 1,
           pageSize: documents.rows.length } : null;
         res.send({ documents: documents.rows, metadata });
       })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: error.message
+      }));
   },
 
   /**
@@ -180,13 +173,13 @@ export default {
   updateDoc(req, res) {
     return Document
     .findById(req.params.id, {})
-    .then(document => {
+    .then((document) => {
       if (!document) {
         return res.status(404).send({
           message: 'Document Not Found',
         });
       }
-      if (document.UserId !== req.decoded.UserId) {
+      if (document.ownerId !== req.decoded.UserId) {
         return res.status(401).send({
           message: 'You cannot update this document'
         });
@@ -195,11 +188,9 @@ export default {
         .update(req.body)
         .then(() => res.status(200).send(document));
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -211,13 +202,13 @@ export default {
   deleteDoc(req, res) {
     return Document
       .findById(req.params.id)
-      .then(document => {
+      .then((document) => {
         if (!document) {
           return res.status(400).send({
             message: 'Document Not Found',
           });
         }
-        if (document.UserId !== req.decoded.UserId) {
+        if (document.ownerId !== req.decoded.UserId) {
           return res.status(401).send({
             message: 'You cannot delete this document'
           });
@@ -228,10 +219,8 @@ export default {
             message: 'Document Deleted'
           }));
       })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: error.message
+      }));
   },
 };

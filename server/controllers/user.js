@@ -7,7 +7,7 @@ dotenv.config();
 const User = model.User;
 const Doc = model.Document;
 
-const secret = process.env.SECRET_TOKEN;
+const secret = process.env.SECRET_TOKEN || 'secret';
 
 const removePassword = (user) => {
   const attributes = {
@@ -20,6 +20,8 @@ const removePassword = (user) => {
   };
   return attributes;
 };
+
+const errorHandler = errors => errors.map(error => error.message);
 
 export default {
 
@@ -37,7 +39,7 @@ export default {
     }
     return User
       .create(req.body)
-      .then(user => {
+      .then((user) => {
         const token = jwt.sign({
           UserId: user.id,
           RoleId: user.RoleId
@@ -45,11 +47,9 @@ export default {
         user = removePassword(user);
         return res.status(201).send({ user, token });
       })
-      .catch((error) => {
-        res.status(400).send({
-          message: error.message,
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: errorHandler(error.errors)
+      }));
   },
 
   /**
@@ -63,23 +63,22 @@ export default {
     const offset = req.query.offset || '0';
     return User
     .findAndCountAll({
-      attributes: ['id', 'username', 'firstname', 'lastname', 'email', 'RoleId'],
+      attributes: ['id', 'username', 'firstname',
+        'lastname', 'email', 'RoleId'],
       limit,
       offset,
       order: '"createdAt" DESC'
     })
     .then((users) => {
-      const metadata = limit && offset ? { count: users.count,
+      const metadata = limit && offset ? { totalCount: users.count,
         pages: Math.ceil(users.count / limit),
         currentPage: Math.floor(offset / limit) + 1,
         pageSize: users.rows.length } : null;
       res.status(200).send({ users: users.rows, metadata });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: errorHandler(error.errors)
+    }));
   },
 
   /**
@@ -91,7 +90,7 @@ export default {
   getUser(req, res) {
     return User
     .findById(req.params.id)
-    .then(user => {
+    .then((user) => {
       if (!user) {
         return res.status(404).send({
           message: 'User Not Found'
@@ -100,11 +99,9 @@ export default {
       user = removePassword(user);
       res.status(200).send(user);
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -117,7 +114,7 @@ export default {
     const limit = req.query.limit || '10';
     const offset = req.query.offset || '0';
     return Doc
-    .findAndCountAll({ where: { UserId: req.params.id },
+    .findAndCountAll({ where: { ownerId: req.params.id },
       limit,
       offset,
       order: '"createdAt" DESC' })
@@ -128,11 +125,9 @@ export default {
         pageSize: documents.rows.length } : null;
       res.status(200).send({ documents: documents.rows, metadata });
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -149,7 +144,7 @@ export default {
     }
     return User
     .findById(req.params.id, {})
-    .then(user => {
+    .then((user) => {
       if (!user) {
         return res.status(404).send({
           message: 'User Not Found',
@@ -164,11 +159,9 @@ export default {
         .update(req.body)
         .then(() => res.status(200).send(removePassword(user)));
     })
-    .catch((error) => {
-      return res.status(400).send({
-        message: error.message
-      });
-    });
+    .catch(error => res.status(400).send({
+      message: error.message
+    }));
   },
 
   /**
@@ -180,7 +173,7 @@ export default {
   deleteUser(req, res) {
     return User
       .findById(req.params.id)
-      .then(user => {
+      .then((user) => {
         if (!user) {
           return res.status(404).send({
             message: 'User Not Found'
@@ -197,11 +190,9 @@ export default {
             message: 'User Deleted'
           }));
       })
-      .catch((error) => {
-        return res.status(400).send({
-          message: error.message
-        });
-      });
+      .catch(error => res.status(400).send({
+        message: error.message
+      }));
   },
 
   /**

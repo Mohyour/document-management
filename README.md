@@ -7,6 +7,43 @@ Application is hosted [here](https://doc-man-msosan.herokuapp.com)
 The system manages documents, users and user roles. Each document defines access rights; the document defines which roles can access it. Also, each document specifies the date it was published.
 
 Users are categorized by roles. Each user must have a role defined for them.
+The API has routes, each dedicated to a single task that uses HTTP response codes to indicate API status and errors.
+
+## Features
+
+The Document Management System API has the following features:
+
+**Authentication**
+
+* App uses JSON Web Token (JWT) for authentication.
+* It generates a token on successful login or user regstration and returns the token back to the consumer.
+* It verifies the token to ensures a user is authenticated to access protected endpoints.
+
+**Users**
+
+* Users can be register
+* Users can login
+* Authenticated users can retrieve and uodate their information
+* An admin user can manage users
+
+
+**Roles**
+
+* Roles can be created, retrieved, updated and deleted by an admin user.
+* A non-admin user cannot create, retrieve, modify, or delete roles.
+* Users are assigned roles on registration
+
+**Documents**
+
+* Auntheticated users can create documents and set the document access level
+* Admin users can create, retrieve all documents
+* Users can delete, edit and update documents that they own.
+* Users can retrieve all documents they own as well as public documents.
+
+**Search**
+
+* Users can search public documents for a specified search term.
+* An admin user can search for documents based on their access roles
 
 ## Installation
 
@@ -23,7 +60,6 @@ Users are categorized by roles. Each user must have a role defined for them.
 ## Usage
 
 * Run database migration with `npm run db:migrate`
-* Run `npm run db:seed` if you want to seed data into your database
 * Start the app with `npm run start-app`. By default, it runs locally on port 5000
 * Use [Postman](https://chrome.google.com/webstore/detail/postman/fhbjgbiflinjbdggehcddcbncdddomop?hl=en) or any API testing tool to access the endpoints
 

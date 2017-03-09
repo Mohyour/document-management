@@ -5,13 +5,13 @@
   "main": "index.js",
   "scripts": {
     "db": "NODE_ENV=test babel-node setup",
-    "db:migrate": "sequelize db:migrate",
-    "db:seed": "sequelize db:seed:all",
-    "start-app": "nodemon server --exec babel-node --presets es2015,stage-2",
+    "db:migrate": "cross-env DATABASE_URL=postgres://andela@127.0.0.1:5433/andela sequelize db:migrate",
+    "db:seed": "cross-env DATABASE_URL=postgres://andela@127.0.0.1:5433/andela sequelize db:seed:all",
+    "start-app": "cross-env DATABASE_URL=postgres://andela@127.0.0.1:5433/andela nodemon server --exec babel-node --presets es2015,stage-2",
     "test": "npm run db && NODE_ENV=test mocha --compilers js:babel-core/register server/tests/**/*.spec.js",
     "cover": "npm run db && NODE_ENV=test istanbul cover _mocha -- server/tests/**/*.spec.js --compilers js:babel-core/register",
     "coveralls": "npm run cover && cat ./coverage/lcov.info | coveralls",
-    "heroku-postbuild": "NODE_ENV=production && npm run build",
+    "heroku-postbuild": "NODE_ENV=production && npm run build && NODE_END=production sequelize db:migrate",
     "build": "rm -rf dist/ && babel ./ --out-dir dist/ --ignore ./node_modules,./tests,./coverage --copy-files",
     "start": "node dist/server.js"
   },

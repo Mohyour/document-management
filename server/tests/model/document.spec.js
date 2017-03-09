@@ -7,7 +7,7 @@ import params from '../test-helper';
 const expect = chai.expect;
 const documentParams = params.testDocument;
 const userParams = params.regularUser;
-const requiredFields = ['title', 'content', 'UserId', 'access'];
+const requiredFields = ['title', 'content', 'ownerId', 'access'];
 
 describe('Document Model', () => {
   describe('How document model is created', () => {
@@ -22,7 +22,7 @@ describe('Document Model', () => {
         })
         .then((createdUser) => {
           owner = createdUser;
-          documentParams.UserId = owner.id;
+          documentParams.ownerId = owner.id;
           done();
         });
       });
@@ -57,7 +57,7 @@ describe('Document Model', () => {
       it('should create a document with owner', (done) => {
         document.save()
           .then((createdDocument) => {
-            expect(createdDocument.UserId).to.equal(owner.id);
+            expect(createdDocument.ownerId).to.equal(owner.id);
             done();
           });
       });

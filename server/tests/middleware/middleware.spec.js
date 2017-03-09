@@ -6,7 +6,7 @@ import events from 'events';
 import supertest from 'supertest';
 import app from '../../../server';
 import model from '../../models';
-import * as auth from '../../routes/auth';
+import * as auth from '../../middleware/Auth';
 import helper from '../test-helper';
 
 const expect = chai.expect;
@@ -17,12 +17,14 @@ const regularRoleParam = helper.regularRole;
 const adminUserParam = helper.adminUser;
 const regularUserParam = helper.regularUser;
 
-const responseEvent = () => {
-  return httpMocks.createResponse({ eventEmitter: events.EventEmitter });
-};
+const responseEvent = () => httpMocks.createResponse(
+  { eventEmitter: events.EventEmitter });
 
 describe('test for middleware', () => {
-  let adminRole, regularRole, regularToken, adminToken;
+  let adminRole;
+  let regularRole;
+  let regularToken;
+  let adminToken;
 
   before((done) => {
     model.Role.bulkCreate([adminRoleParam, regularRoleParam], {
@@ -49,7 +51,7 @@ describe('test for middleware', () => {
   });
   after(() => model.sequelize.sync({ force: true }));
 
-  it('should return an error if no token is passed', (done) => {
+  it('Should return an error if no token is passed', (done) => {
     const req = httpMocks.createRequest({
       method: 'GET',
       url: '/users',
@@ -62,7 +64,7 @@ describe('test for middleware', () => {
     auth.verifyToken(req, res);
   });
 
-  it('should return error if invalid token is passed', (done) => {
+  it('Should return error if invalid token is passed', (done) => {
     const req = httpMocks.createRequest({
       method: 'GET',
       url: '/users',
@@ -77,7 +79,7 @@ describe('test for middleware', () => {
     auth.verifyToken(req, res);
   });
 
-  it('should call next for valid token', () => {
+  it('Should call next for valid token', () => {
     const stub = {
       next: () => {}
     };
@@ -96,7 +98,8 @@ describe('test for middleware', () => {
   });
 
   describe('IsAdmin Suite', () => {
-    it('should return error for requests from by non admin for protected routes', (done) => {
+    it(`Should return error for requests from by non admin for
+    protected routes`, (done) => {
       const res = responseEvent();
       const req = httpMocks.createRequest({
         method: 'GET',
@@ -106,13 +109,14 @@ describe('test for middleware', () => {
       });
 
       res.on('end', () => {
-        expect(res._getData().message).to.equal('Only an admin is authorized for this request');
+        expect(res._getData().message).to
+        .equal('Only an admin is authorized for this request');
         done();
       });
       auth.adminAccess(req, res);
     });
 
-    it('should call next for admin user', () => {
+    it('Should call next for admin user', () => {
       const stub = {
         next: () => {}
       };
